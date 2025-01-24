@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2021 Torstein Honsi
+ *  (c) 2010-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -102,6 +102,8 @@ const ColumnSeriesDefaults: PlotOptionsOf<ColumnSeries> = {
      *
      * @sample {highcharts} highcharts/series-column/centerincategory/
      *         Center in category
+     * @sample {highcharts} highcharts/series/stack-centerincategory/
+     *         Center in category, stacked and grouped
      *
      * @since   8.0.1
      * @product highcharts highstock gantt
@@ -138,7 +140,7 @@ const ColumnSeriesDefaults: PlotOptionsOf<ColumnSeries> = {
      */
 
     /** @ignore-option */
-    marker: null as any, // point options are specified in the base options
+    marker: null as any, // Point options are specified in the base options
 
     /**
      * The maximum allowed pixel width for a column, translated to the
@@ -178,7 +180,7 @@ const ColumnSeriesDefaults: PlotOptionsOf<ColumnSeries> = {
      * When set to `undefined`, the width is calculated from the
      * `pointPadding` and `groupPadding`. The width effects the dimension
      * that is not based on the point value. For column series it is the
-     * hoizontal length and for bar series it is the vertical length.
+     * horizontal length and for bar series it is the vertical length.
      *
      * @see [maxPointWidth](#plotOptions.column.maxPointWidth)
      *
@@ -348,7 +350,7 @@ const ColumnSeriesDefaults: PlotOptionsOf<ColumnSeries> = {
         y: void 0
     },
 
-    // false doesn't work well: https://jsfiddle.net/highcharts/hz8fopan/14/
+    // False doesn't work well: https://jsfiddle.net/highcharts/hz8fopan/14/
     /** @ignore-option */
     startFromThreshold: true,
 
@@ -539,7 +541,7 @@ const ColumnSeriesDefaults: PlotOptionsOf<ColumnSeries> = {
  * @apioption series.column.states.select
  */
 
-''; // keeps doclets above in JS file
+''; // Keeps doclets above in JS file
 
 /* *
  *

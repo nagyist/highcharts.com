@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009 - 2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -19,7 +19,10 @@
  *
  * */
 
+import type Globals from '../Globals';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type JSON from '../JSON';
+import type HTMLTableConnectorOptions from '../../Data/Connectors/HTMLTableConnectorOptions';
 
 import DataTableHelper from './DataTableHelper.js';
 import HTMLTableConnector from '../../Data/Connectors/HTMLTableConnector.js';
@@ -51,7 +54,7 @@ function fromJSON(
 /**
  * Validates the given class instance for JSON support.
  *
- * @param {AnyRecord} obj
+ * @param {Globals.AnyRecord} obj
  * Class instance or object to validate.
  *
  * @return {boolean}
@@ -59,7 +62,7 @@ function fromJSON(
  * false.
  */
 function jsonSupportFor(
-    obj: AnyRecord
+    obj: Globals.AnyRecord
 ): obj is HTMLTableConnector {
     return obj instanceof HTMLTableConnector;
 }
@@ -104,7 +107,7 @@ namespace HTMLTableConnectorHelper {
         options: OptionsJSON;
     }
 
-    export type OptionsJSON = (JSON.Object&HTMLTableConnector.Options);
+    export type OptionsJSON = (JSON.Object&HTMLTableConnectorOptions);
 
 }
 

@@ -22,6 +22,7 @@ For basic usage, Highcharts doesn't refer to any files other than highcharts.js/
 
 *   The exporting module. Since not all browsers are able to convert the chart to an image format, this operation is by default done on our web service, https://export.highcharts.com. The generated SVG is sent from your browser to the export server, and an image is sent back. If you're concerned about your data content being passed over the internet, you should consider our alternative solutions. The simplest alternative is to use our [module for client-side export](https://highcharts.com/docs/export-module/client-side-export). Check out the features and compatibility table if it meets your requirements. If you have access to a node server, you can also [set up your own export server](https://highcharts.com/docs/export-module/setting-up-the-server). 
 *   Certain features, including client side exporting, may require third-party dependencies. Some of these are loaded on demand from our servers, but in these cases the loading location is configurable. Details on all external dependencies, including licensing and security details, can be found in the [optional dependencies](https://highcharts.com/docs/getting-started/optional-dependencies) documentation article.
+* Stock Tools icons. By default the icons are loaded dynamically from https://code.highcharts.com. To change where icons should be loaded from see the [iconsURL](https://api.highcharts.com/highstock/navigation.iconsURL) option.
 
 * * *
 
@@ -30,9 +31,9 @@ Can I use Highcharts with a ... server?
 
 Highcharts runs entirely on the client, and works with any web server that can deliver HTML and JavaScript content. Whether your server is PHP, Perl, ASP, ASP.NET, Node.js or whatever, Highcharts is completely ignorant of it. The HTML/JavaScript files may also be loaded from the file system, which is the case in app platforms where Highcharts is loaded in a web component inside the app.
 
-The best practice in integrating Highcharts may differ from system to system. You should follow the common practice for handing JavaScript on your specific system. Some prefer to serve a clean JSON or JavaScript file with the Highcharts setup, others to write the JavaScript setup directly to the web page. Data can be loaded in form of JSON or CSV files (see Working with data in the left menu), or printed inline in the chart setup. When working with a databased powered backend, it may be cleaner to have your server system serve JSON or CSV files.
+The best practice in integrating Highcharts may differ from system to system. You should follow the common practice for handing JavaScript on your specific system. Some prefer to serve a clean JSON or JavaScript file with the Highcharts setup, others to write the JavaScript setup directly to the web page. Data can be loaded in form of JSON or CSV files (see Working with data in the left menu), or printed inline in the chart setup. When working with a database powered backend, it may be cleaner to have your server system serve JSON or CSV files.
 
-For a live connection to the server, you may set up the web page to load new data over XHR or set up direct communicatations using WebSockets. With the new data arriving in the browser, the chart can be kept updated through various dynamic endpoints like `Series.addPoint()`, `Point.update()`, `Chart.addSeries()`, `Chart.update()` etc.
+For a live connection to the server, you may set up the web page to load new data over XHR or set up direct communications using WebSockets. With the new data arriving in the browser, the chart can be kept updated through various dynamic endpoints like `Series.addPoint()`, `Point.update()`, `Chart.addSeries()`, `Chart.update()` etc.
 
 Before you start to set up a complex backend, you may want to check out [highcharts.com/download](https://highcharts.com/download) to see if there is a wrapper for your specific system.
 
@@ -70,6 +71,10 @@ When working with series with a high number of data points, there are a few thin
 1.  First of all, consider using the [Boost module](https://www.highcharts.com/blog/tutorials/highcharts-high-performance-boost-module/).
 2.  Otherwise, for line plots, it is recommended that you disable point markers, as these will add a performance overhead. See [https://highcharts.com/demo/line-time-series](https://highcharts.com/demo/line-time-series).
 3.  Disabling shadows increases performance, as three shadow elements are created for each shape that includes a shadow.
+4.  If you have a Stock licence, consider using the [Data Grouping module](https://www.highcharts.com/docs/stock/data-grouping). This module packs multiple consecutive values into the same point, and results in considerably fewer points to render. This greatly
+reduces the initial loading time. The following chart compares the loading times of the same data set with and without data grouping.
+
+<iframe style="width: 100%; height: 470px" src="https://www.highcharts.com/samples/embed/highcharts/blog/dg-performance-comparison" frameborder="0"></iframe>
 
 * * *
 
@@ -110,7 +115,7 @@ Yes. See our article, [Render charts on the server](https://highcharts.com/docs/
 How do I define irregular time data?
 ------------------------------------
 
-To add data points with irregular intervals, instead of defining pointStart and pointInterval for the series, define an X value (date) for each point. See [https://jsfiddle.net/highcharts/Jx5n2/](https://jsfiddle.net/highcharts/Jx5n2/).
+To add data points with irregular intervals, instead of defining `pointStart` and `pointInterval` for the series, define an X value (date) for each point. See [demo of irregular time](https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/highcharts/demo/spline-irregular-time).
 
 If you want the line to be broken for missing dates, insert null values instead.
 

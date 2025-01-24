@@ -1,3 +1,17 @@
+* {
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
+        sans-serif;
+}
+
 .highcharts-figure {
     max-width: 550px;
     min-width: 360px;
@@ -29,4 +43,15 @@
 #sonify:hover {
     background-color: #25386f;
     color: #fff;
+}
+
+@media (max-width: 530px) {
+    #sonify {
+        position: static;
+        margin: 10px;
+    }
+}
+
+.highcharts-description {
+    margin: 0.3rem 10px;
 }

@@ -1,4 +1,5 @@
 import Dashboards from '../../../../code/dashboards/es-modules/masters/dashboards.src.js';
+import EditMode from '../../../../code/dashboards/es-modules/masters/modules/layout.src.js';
 import PluginHandler from  '../../../../code/dashboards/es-modules/Dashboards/PluginHandler.js';
 import Highcharts from '../../../../code/es-modules/masters/highcharts.src.js';
 import HighchartsPlugin from '../../../../code/dashboards/es-modules/Dashboards/Plugins/HighchartsPlugin.js';
@@ -11,14 +12,19 @@ let exportedLayoutId;
 const chartDemo = {
     type: 'Highcharts',
     chartOptions: {
-        type: 'line',
         series: [{
             name: 'Series from options',
             data: [1, 2, 3, 4]
         }],
         chart: {
+            type: 'pie',
             animation: false,
             height: 150
+        },
+        plotOptions: {
+            series: {
+                animation: false
+            }
         }
     }
 };
@@ -28,7 +34,8 @@ Dashboards.board('container', {
         enabled: true,
         contextMenu: {
             enabled: true,
-            icon: 'https://code.highcharts.com/gfx/dashboard-icons/menu.svg',
+            icon: 'https://code.highcharts.com/dashboards/gfx/' +
+                'dashboards-icons/menu.svg',
             items: ['editMode', {
                 id: 'export-dashboard',
                 text: 'Export dashboard',
@@ -74,35 +81,22 @@ Dashboards.board('container', {
                     }
                 }
             }]
-        },
-        resize: {
-            enabled: true,
-            styles: {
-                minWidth: 20,
-                minHeight: 50
-            },
-            type: 'xy',
-            snap: {
-                width: 20,
-                height: 20
-            }
         }
     },
     gui: {
         enabled: true,
         layouts: [{
-            id: 'layout-in-1', // mandatory
             rows: [{
                 cells: [{
-                    id: 'dashboard-col-nolayout-0'
+                    id: 'cell-1'
                 }, {
-                    id: 'dashboard-col-layout-0'
+                    id: 'cell-2'
                 }]
             }]
         }]
     },
     components: [{
-        cell: 'dashboard-col-nolayout-0',
+        renderTo: 'cell-1',
         type: 'Highcharts',
         chartOptions: {
             chart: {
@@ -114,6 +108,11 @@ Dashboards.board('container', {
             tooltip: {
                 enabled: false
             },
+            plotOptions: {
+                series: {
+                    animation: false
+                }
+            },
             series: [{
                 name: 'Series from options',
                 data: [1, 2, 3, 4]
@@ -123,7 +122,7 @@ Dashboards.board('container', {
             }
         }
     }, {
-        cell: 'dashboard-col-layout-0',
+        renderTo: 'cell-2',
         ...chartDemo
     }]
 });

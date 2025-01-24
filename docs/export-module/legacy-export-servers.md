@@ -128,7 +128,7 @@ curl -H "Content-Type: application/json" -X POST -d "{\"infile\":\"{series:[{dat
 
 ### 2. Export server based on Java and PhantomJS
 
-This solution also includes a standalone solution for creating charts on the server, without a client involved. Highcharts is using this export server at export.highcharts.com, the default Highcharts export server. It's a server which is desgined with a large network load in mind. Requests to this server are concurrently handled by an serverpool.
+This solution also includes a standalone solution for creating charts on the server, without a client involved. Highcharts is using this export server at export.highcharts.com, the default Highcharts export server. It's a server which is designed with a large network load in mind. Requests to this server are concurrently handled by an serverpool.
 
 It takes either SVG or Highcharts options (in javascript) as input and converts it to images (PNG, JPEG ), PDF or SVG.
 
@@ -177,18 +177,18 @@ $ mvn clean package
 
 After compiling and the message BUILD SUCCESS, you will find a file: highcharts-export-web.war in the `highcharts-export/highcharts-export-web/target` folder.
 
-
-    [INFO] ------------------------------------------------------------------------
-     [INFO] BUILD SUCCESS
-     [INFO] ------------------------------------------------------------------------
-     [INFO] Total time: 2.476s
-     [INFO] Finished at: Wed Jun 26 14:52:07 CEST 2013
-     [INFO] Final Memory: 15M/215M
-     [INFO] ------------------------------------------------------------------------
-     highcharts-export-web $> ls target/
-     classes                highcharts-export-web        maven-archiver
-     generated-sources        **highcharts-export-web.war**    surefire
-     Gerts-MacBook-Pro:highcharts-export-web gert$
+```
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 2.476s
+[INFO] Finished at: Wed Jun 26 14:52:07 CEST 2013
+[INFO] Final Memory: 15M/215M
+[INFO] ------------------------------------------------------------------------
+highcharts-export-web $> ls target/
+classes                highcharts-export-web        maven-archiver
+generated-sources        **highcharts-export-web.war**    surefire
+```
 
 Upload/copy this to the application server. You're done with setting up the highcharts-export server!
 

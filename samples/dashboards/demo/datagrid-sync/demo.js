@@ -1,18 +1,53 @@
-const csvData = document.getElementById('csv').innerText;
+const data = [
+    ['Food', 'Vitamin A'],
+    ['Beef Liver', 6421],
+    ['Lamb Liver', 2122],
+    ['Cod Liver Oil', 1350],
+    ['Mackerel', 388],
+    ['Tuna', 214]
+];
 
 const chartOptions = {
-    xAxis: {
-        type: 'category'
-    },
     chart: {
         animation: false,
         type: 'column'
     },
+    credits: {
+        enabled: false
+    },
     title: {
+        text: 'allowConnectorUpdate: true'
+    },
+    subtitle: {
         text: 'Drag points to update the data grid'
+    },
+    accessibility: {
+        point: {
+            descriptionFormat: 'Vitamin A content in {name}: {y} micrograms.'
+        },
+        description: `The first bar chart uses some example data to present
+        the ability to edit the connector values by manually changing the height
+        of the bars in the series, which is possible with allowConnectorUpdate
+        option set to true.`
+    },
+    tooltip: {
+        stickOnContact: true,
+        valueSuffix: ' mcg'
+    },
+    yAxis: {
+        title: {
+            text: ''
+        },
+        accessibility: {
+            description: 'amount of Vitamin A in micrograms'
+        }
+    },
+    legend: {
+        enabled: false
     },
     plotOptions: {
         series: {
+            colorByPoint: true,
             dragDrop: {
                 draggableY: true,
                 dragPrecisionY: 1
@@ -21,14 +56,13 @@ const chartOptions = {
     }
 };
 
-const board = Dashboards.board('container', {
+Dashboards.board('container', {
     dataPool: {
         connectors: [{
-            type: 'CSV',
+            type: 'JSON',
             id: 'synchro-data',
             options: {
-                csv: csvData,
-                firstRowAsNames: true
+                data
             }
         }]
     },
@@ -46,52 +80,60 @@ const board = Dashboards.board('container', {
             }]
         }]
     },
-    components: [
-        {
-            cell: 'dashboard-col-0',
-            type: 'Highcharts',
-            connector: {
-                id: 'synchro-data'
-            },
-            sync: {
-                highlight: true
-            },
-            columnAssignment: {
-                Food: 'x',
-                'Vitamin A': 'y'
-            },
+    components: [{
+        renderTo: 'dashboard-col-0',
+        type: 'Highcharts',
+        connector: {
+            id: 'synchro-data'
+        },
+        sync: {
+            highlight: true
+        },
+        chartOptions: chartOptions
+    }, {
+        renderTo: 'dashboard-col-1',
+        connector: {
+            id: 'synchro-data'
+        },
+        type: 'Highcharts',
+        sync: {
+            highlight: true
+        },
+        allowConnectorUpdate: false,
+        chartOptions: Highcharts.merge(chartOptions, {
             title: {
-                text: 'allowConnectorUpdate: true'
+                text: 'Dragging points does not affect other components'
             },
-            chartOptions
-        }, {
-            cell: 'dashboard-col-1',
-            connector: {
-                id: 'synchro-data'
+            subtitle: {
+                useHTML: true,
+                text: 'Dragging points <em>will not update</em> the grid'
             },
-            type: 'Highcharts',
-            sync: {
-                highlight: true
-            },
-            columnAssignment: {
-                Food: 'x',
-                'Vitamin A': 'y'
-            },
-            title: {
-                text: 'allowConnectorUpdate: false'
-            },
-            allowConnectorUpdate: false,
-            chartOptions
-        }, {
-            cell: 'dashboard-col-2',
-            connector: {
-                id: 'synchro-data'
-            },
-            type: 'DataGrid',
-            editable: true,
-            sync: {
-                highlight: true
+            accessibility: {
+                description: `The second bar chart uses some example data to
+                show disabled editing of connector values by manually changing
+                the height of bars in a series; allowConnectorUpdate option set
+                to false.`
             }
+        })
+    }, {
+        renderTo: 'dashboard-col-2',
+        connector: {
+            id: 'synchro-data'
+        },
+        type: 'DataGrid',
+        sync: {
+            highlight: true
+        },
+        dataGridOptions: {
+            credits: {
+                enabled: false
+            },
+            columns: [{
+                id: 'Vitamin A',
+                cells: {
+                    editable: true
+                }
+            }]
         }
-    ]
-}, true);
+    }]
+});

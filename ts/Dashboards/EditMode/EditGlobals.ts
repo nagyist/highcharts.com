@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009 - 2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -20,9 +20,6 @@ import DG from '../Globals.js';
 
 const PREFIX = DG.classNamePrefix + 'edit-';
 
-/**
- * @internal
- */
 const EditGlobals: EditGlobals = {
     classNames: {
         resizeSnap: PREFIX + 'resize-snap',
@@ -30,6 +27,7 @@ const EditGlobals: EditGlobals = {
         resizeSnapY: PREFIX + 'resize-snap-y',
         separator: PREFIX + 'separator',
         contextMenuBtn: PREFIX + 'context-menu-btn',
+        contextMenuBtnText: PREFIX + 'context-menu-btn-text',
         contextMenu: PREFIX + 'context-menu',
         contextMenuItem: PREFIX + 'context-menu-item',
         editModeEnabled: PREFIX + 'enabled',
@@ -42,6 +40,7 @@ const EditGlobals: EditGlobals = {
         editSidebar: PREFIX + 'sidebar',
         editSidebarShow: PREFIX + 'sidebar-show',
         editSidebarHide: PREFIX + 'sidebar-hide',
+        editSidebarHeader: PREFIX + 'sidebar-header',
         editSidebarTitle: PREFIX + 'sidebar-title',
         editSidebarMenuItem: PREFIX + 'sidebar-item',
         rowContextHighlight: PREFIX + 'row-context-highlight',
@@ -76,7 +75,9 @@ const EditGlobals: EditGlobals = {
 
         // Confirmation popup
         confirmationPopup: PREFIX + 'confirmation-popup',
+        popupButtonContainer: PREFIX + 'confirmation-popup-button-container',
         popupContentContainer: PREFIX + 'confirmation-popup-content',
+        popupCancelBtn: PREFIX + 'confirmation-popup-cancel-btn',
         popupConfirmBtn: PREFIX + 'confirmation-popup-confirm-btn',
         popupCloseButton: PREFIX + 'popup-close',
 
@@ -94,25 +95,36 @@ const EditGlobals: EditGlobals = {
         accordionContainer: PREFIX + 'accordion',
         accordionHeader: PREFIX + 'accordion-header',
         accordionHeaderBtn: PREFIX + 'accordion-header-btn',
+        accordionHeaderWrapper: PREFIX + 'accordion-header-wrapper',
         accordionHeaderIcon: PREFIX + 'accordion-header-icon',
         accordionContent: PREFIX + 'accordion-content',
         accordionNestedWrapper: PREFIX + 'accordion-nested',
         accordionMenuButtonsContainer:
             PREFIX + 'accordion-menu-buttons-container',
         accordionMenuButton: PREFIX + 'accordion-menu-button',
+        accordionStandaloneWrapper: PREFIX + 'accordion-standalone-wrapper',
         hiddenElement: PREFIX + 'hidden-element',
         collapsableContentHeader: PREFIX + 'collapsable-content-header',
+        standaloneElement: PREFIX + 'standalone-element',
 
         // Custom dropdown with icons
+        collapsedElement: PREFIX + 'collapsed-element',
         dropdown: PREFIX + 'dropdown',
         dropdownContent: PREFIX + 'dropdown-content',
         dropdownButton: PREFIX + 'dropdown-button',
         dropdownButtonContent: PREFIX + 'dropdown-button-content',
         dropdownIcon: PREFIX + 'pointer',
-        rotateElement: PREFIX + 'rotate-element',
         icon: PREFIX + 'icon'
     },
     lang: {
+        accessibility: {
+            contextMenu: {
+                button: 'Context menu'
+            },
+            editMode: {
+                editMode: 'Edit mode toggle button'
+            }
+        },
         addComponent: 'Add component',
         cancelButton: 'Cancel',
         caption: 'Caption',
@@ -123,30 +135,32 @@ const EditGlobals: EditGlobals = {
         chartType: 'Chart type',
         connectorName: 'Connector name',
         confirmButton: 'Confirm',
-        confirmDestroyCell: 'Do you want to destroy the cell?',
-        confirmDestroyRow: 'Do you want to destroy the row?',
+        confirmDestroyCell: 'Do you really want to destroy the cell?',
+        confirmDestroyRow: 'Do you really want to destroy the row?',
+        confirmDiscardChanges: 'Do you really want to discard the changes?',
         dataLabels: 'Data labels',
         editMode: 'Edit mode',
         errorMessage: 'Something went wrong',
         exitFullscreen: 'Exit full screen',
+        htmlInput: 'HTML',
         id: 'Id',
-        large: 'Large',
-        medium: 'Medium',
         off: 'off',
         on: 'on',
         pointFormat: 'Point format',
-        scaleElements: 'Scale elements',
         settings: 'Settings',
-        small: 'Small',
         style: 'Styles',
         title: 'Title',
-        viewFullscreen: 'View in full screen'
+        viewFullscreen: 'View in full screen',
+        sidebar: {
+            HTML: 'HTML',
+            row: 'Row',
+            Highcharts: 'Highcharts',
+            DataGrid: 'DataGrid',
+            KPI: 'KPI'
+        }
     }
 };
 
-/**
- * @internal
- */
 interface EditGlobals {
     classNames: EditGlobals.ClassNamesOptions;
     lang: EditGlobals.LangOptions;
@@ -163,6 +177,8 @@ namespace EditGlobals {
         accordionMenuButton: string;
         accordionMenuButtonsContainer: string;
         accordionNestedWrapper: string;
+        accordionStandaloneWrapper: string;
+        accordionHeaderWrapper: string;
         button: string;
         cellEditHighlight: string;
         collapsableContentHeader: string;
@@ -170,6 +186,7 @@ namespace EditGlobals {
         contextDetectionPointer: string;
         contextMenu: string;
         contextMenuBtn: string;
+        contextMenuBtnText: string;
         contextMenuItem: string;
         currentEditedElement: string;
         customSelect: string;
@@ -188,6 +205,7 @@ namespace EditGlobals {
         editOverlayActive: string;
         editSidebar: string;
         editSidebarHide: string;
+        editSidebarHeader: string;
         editSidebarMenuItem: string;
         editSidebarRight: string;
         editSidebarRightShow: string;
@@ -214,18 +232,21 @@ namespace EditGlobals {
         menuItem: string;
         menuVerticalSeparator: string;
         popupCloseButton: string;
+        popupCancelBtn: string;
         popupConfirmBtn: string;
+        popupButtonContainer: string;
         popupContentContainer: string;
         resizePointer: string;
         resizeSnap: string;
         resizeSnapX: string;
         resizeSnapY: string;
         resizerMenuBtnActive: string;
-        rotateElement: string;
+        collapsedElement: string;
         rowContextHighlight: string;
         separator: string;
         sidebarCloseButton: string;
         sidebarNavButton: string;
+        standaloneElement: string;
         toggleContainer: string;
         toggleLabels: string;
         toggleSlider: string;
@@ -235,6 +256,10 @@ namespace EditGlobals {
     }
 
     export interface LangOptions {
+        /**
+         * Accessibility language options for the dashboard.
+         */
+        accessibility: EditGlobals.LangAccessibilityOptions;
         /**
          * @default 'Add component'
          */
@@ -270,15 +295,23 @@ namespace EditGlobals {
         /**
          * @default 'Connector name'
          */
+        connectorName: string;
+        /**
+         * @default 'Confirm'
+         */
         confirmButton: string;
         /**
-         * @default 'Do you want to destroy the cell?'
+         * @default 'Do you really want to destroy the cell?'
          */
         confirmDestroyCell: string;
         /**
-         * @default 'Do you want to destroy the row?'
+         * @default 'Do you really want to destroy the row?'
          */
         confirmDestroyRow: string;
+        /**
+         * @default 'Do you really want to discard the changes?'
+         */
+        confirmDiscardChanges: string;
         /**
          * @default 'Data labels'
          */
@@ -300,14 +333,6 @@ namespace EditGlobals {
          */
         id: string;
         /**
-         * @default 'Large'
-         */
-        large: string;
-        /**
-         * @default 'Medium'
-         */
-        medium: string;
-        /**
          * @default 'off'
          */
         off: string;
@@ -320,13 +345,13 @@ namespace EditGlobals {
          */
         pointFormat: string;
         /**
-         * @default 'Scale elements'
-         */
-        scaleElements: string;
-        /**
          * @default 'Settings'
          */
         settings: string;
+        /**
+         * Options for the sidebar and its components.
+         */
+        sidebar:SidebarLangOptions
         /**
          * @default 'Styles'
          */
@@ -339,10 +364,57 @@ namespace EditGlobals {
          * @default 'View in full screen'
          */
         viewFullscreen: string;
-        [key: string]: string;
+        [key: string]: any;
     }
 
-    export type TLangKeys = 'editMode'|'verticalSeparator';
+    export interface SidebarLangOptions {
+        [key: string]: string;
+        /**
+         * @default 'HTML'
+         */
+        HTML: string;
+        /**
+         * @default 'Row'
+         */
+        row: string;
+        /**
+         * @default 'Highcharts'
+         */
+        Highcharts: string;
+        /**
+         * @default 'DataGrid'
+         */
+        DataGrid: string;
+        /**
+         * @default 'KPI'
+         */
+        KPI: string;
+    }
+
+    export interface LangAccessibilityOptions {
+        contextMenu: LangAccessibilityOptionsContextMenu;
+        editMode: LangAccessibilityOptionsEditMode;
+    }
+
+    export interface LangAccessibilityOptionsContextMenu {
+        [key: string]: string;
+
+        /**
+         * @default 'Context menu'
+         */
+        button: string;
+    }
+
+    export interface LangAccessibilityOptionsEditMode {
+        [key: string]: string;
+
+        /**
+         * @default 'Edit mode'
+         */
+        editMode: string;
+    }
+
+    export type TLangKeys = 'editMode' | 'verticalSeparator';
 }
 
 export default EditGlobals;

@@ -2,7 +2,7 @@
  *
  *  Organization chart module
  *
- *  (c) 2018-2021 Torstein Honsi
+ *  (c) 2018-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -17,12 +17,11 @@
  * */
 
 import type OrganizationPoint from './OrganizationPoint';
-import type OrganizationSeries from './OrganizationSeries';
 import type Point from '../../Core/Series/Point';
 import type {
-    SankeyDataLabelFormatterContext,
     SankeyDataLabelOptions
 } from '../Sankey/SankeyDataLabelOptions';
+import type SankeyPoint from '../Sankey/SankeyPoint';
 
 /* *
  *
@@ -32,16 +31,8 @@ import type {
 
 export interface OrganizationDataLabelsFormatterCallbackFunction {
     (
-        this: (
-            OrganizationDataLabelFormatterContext|
-            SankeyDataLabelFormatterContext|
-            Point.PointLabelObject
-        )
+        this: (Point|OrganizationPoint|SankeyPoint)
     ): (string|undefined);
-}
-export interface OrganizationDataLabelFormatterContext extends SankeyDataLabelFormatterContext {
-    point: OrganizationPoint;
-    series: OrganizationSeries;
 }
 
 
@@ -50,5 +41,11 @@ export interface OrganizationDataLabelOptions extends SankeyDataLabelOptions {
     linkFormat?: string;
     linkFormatter?: OrganizationDataLabelsFormatterCallbackFunction;
 }
+
+/* *
+ *
+ *  Default Export
+ *
+ * */
 
 export default OrganizationDataLabelOptions;

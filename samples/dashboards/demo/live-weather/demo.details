@@ -1,0 +1,13 @@
+---
+name: Live weather
+authors:
+  - Jomar Hønsi
+requiresManualTesting: true
+js_wrap: b
+tags:
+- Highcharts Dashboards demo
+categories:
+  - Advanced:
+        priority: 20
+use_png_thumbnail: true
+...

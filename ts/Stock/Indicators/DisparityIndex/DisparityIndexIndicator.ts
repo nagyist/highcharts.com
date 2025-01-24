@@ -1,5 +1,5 @@
 /* *
- *  (c) 2010-2021 Rafal Sebestjanski
+ *  (c) 2010-2024 Rafal Sebestjanski
  *
  *  Disparity Index technical indicator for Highcharts Stock
  *
@@ -22,6 +22,7 @@ import type {
     DisparityIndexParamsOptions
 } from './DisparityIndexOptions';
 import type DisparityIndexPoint from './DisparityIndexPoint';
+import type { IndicatorLinkedSeriesLike } from '../IndicatorLike';
 import type IndicatorValuesObject from '../IndicatorValuesObject';
 import type LineSeries from '../../../Series/Line/LineSeries';
 
@@ -107,10 +108,10 @@ class DisparityIndexIndicator extends SMAIndicator {
      *
      * */
 
-    public averageIndicator: typeof SMAIndicator = void 0 as any;
-    public data: Array<DisparityIndexPoint> = void 0 as any;
-    public options: DisparityIndexOptions = void 0 as any;
-    public points: Array<DisparityIndexPoint> = void 0 as any;
+    public averageIndicator!: typeof SMAIndicator;
+    public data!: Array<DisparityIndexPoint>;
+    public options!: DisparityIndexOptions;
+    public points!: Array<DisparityIndexPoint>;
 
     /* *
      *
@@ -121,7 +122,7 @@ class DisparityIndexIndicator extends SMAIndicator {
     public init(): void {
         const args = arguments,
             ctx = this, // Disparity Index indicator
-            params = args[1].params, // options.params
+            params = args[1].params, // Options.params
             averageType = params && params.average ? params.average : void 0;
 
         ctx.averageIndicator = SeriesRegistry
@@ -137,7 +138,7 @@ class DisparityIndexIndicator extends SMAIndicator {
     }
 
     public getValues<TLinkedSeries extends LineSeries>(
-        series: TLinkedSeries,
+        series: TLinkedSeries&IndicatorLinkedSeriesLike,
         params: DisparityIndexParamsOptions
     ): (IndicatorValuesObject<TLinkedSeries>|undefined) {
         const index = params.index,
@@ -249,4 +250,4 @@ export default DisparityIndexIndicator;
  * @apioption series.disparityindex
  */
 
-''; // to include the above in the js output
+''; // To include the above in the js output

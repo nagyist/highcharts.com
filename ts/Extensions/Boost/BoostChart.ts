@@ -1,6 +1,6 @@
 /* *
  *
- *  Copyright (c) 2019-2021 Highsoft AS
+ *  (c) 2019-2024 Highsoft AS
  *
  *  Boost module: stripped-down renderer for higher performance
  *
@@ -25,14 +25,20 @@ import type {
     BoostTargetObject
 } from './BoostTargetObject';
 import type Chart from '../../Core/Chart/Chart';
+import type Pointer from '../../Core/Pointer';
 import type Series from '../../Core/Series/Series';
 import type SeriesOptions from '../../Core/Series/SeriesOptions';
+import type SVGElement from '../../Core/Renderer/SVG/SVGElement';
+import type { TypedArray } from '../../Core/Series/SeriesOptions';
 
 import BoostableMap from './BoostableMap.js';
+import H from '../../Core/Globals.js';
+const { composed } = H;
 import U from '../../Core/Utilities.js';
 const {
     addEvent,
-    pick
+    pick,
+    pushUnique
 } = U;
 
 /* *
@@ -44,6 +50,7 @@ const {
 interface BoostChartAdditions extends BoostTargetAdditions {
     forceChartBoost?: boolean;
     markerGroup?: Series['markerGroup'];
+    lineWidthFilter?: SVGElement;
 }
 
 export declare class BoostChartComposition extends Chart {
@@ -61,14 +68,6 @@ declare module '../../Core/Chart/ChartLike'{
 
 /* *
  *
- *  Constants
- *
- * */
-
-const composedClasses: Array<Function> = [];
-
-/* *
- *
  *  Functions
  *
  * */
@@ -81,7 +80,7 @@ function compose<T extends typeof Chart>(
     wglMode?: boolean
 ): T {
 
-    if (wglMode && U.pushUnique(composedClasses, ChartClass)) {
+    if (wglMode && pushUnique(composed, 'Boost.Chart')) {
         ChartClass.prototype.callbacks.push(onChartCallback);
     }
 
@@ -100,12 +99,41 @@ function getBoostClipRect(
     chart: Chart,
     target: BoostTargetObject
 ): BBoxObject {
-    const clipBox = {
+    const navigator = chart.navigator;
+    let clipBox = {
         x: chart.plotLeft,
         y: chart.plotTop,
         width: chart.plotWidth,
         height: chart.plotHeight
     };
+
+    if (navigator && chart.inverted) { // #17820, #20936
+        clipBox.width += navigator.top + navigator.height;
+
+        if (!navigator.opposite) {
+            clipBox.x = navigator.left;
+        }
+
+    } else if (navigator && !chart.inverted) {
+        clipBox.height = navigator.top + navigator.height - chart.plotTop;
+    }
+
+    // Clipping of individual series (#11906, #19039).
+    if ((target as Series).getClipBox) {
+        const { xAxis, yAxis } = target as Series;
+        clipBox = (target as Series).getClipBox();
+        if (chart.inverted) {
+            const lateral = clipBox.width;
+            clipBox.width = clipBox.height;
+            clipBox.height = lateral;
+            clipBox.x = yAxis.pos;
+            clipBox.y = xAxis.pos;
+        } else {
+            clipBox.x = xAxis.pos;
+            clipBox.y = yAxis.pos;
+        }
+    }
+
 
     if (target === chart) {
         const verticalAxes =
@@ -118,8 +146,6 @@ function getBoostClipRect(
                 chart.plotTop +
                 verticalAxes[0].len
             );
-        } else {
-            clipBox.height = chart.plotHeight;
         }
     }
 
@@ -204,9 +230,9 @@ function isChartSeriesBoosting(
         }
 
         if (patientMax(
-            series.processedXData,
+            series.getColumn('x', true),
             seriesOptions.data as any,
-            // series.xData,
+            /// series.xData,
             series.points
         ) >= (seriesOptions.boostThreshold || Number.MAX_VALUE)) {
             ++needBoostCount;
@@ -215,8 +241,11 @@ function isChartSeriesBoosting(
 
     boost.forceChartBoost = allowBoostForce && (
         (
+            // Even when the series that need a boost are less than or equal
+            // to 5, force a chart boost when all series are to be boosted.
+            // See #18815
             canBoostCount === allSeries.length &&
-            needBoostCount > 0
+            needBoostCount === canBoostCount
         ) ||
         needBoostCount > 5
     );
@@ -258,8 +287,8 @@ function onChartCallback(
         chart.boosted = false;
 
         // Clear the canvas
-        if (chart.boost.clear) {
-            chart.boost.clear();
+        if (!chart.axes.some((axis): boolean|undefined => axis.isPanning)) {
+            chart.boost.clear?.();
         }
 
         if (
@@ -271,7 +300,7 @@ function onChartCallback(
             chart.boost.wgl.allocateBuffer(chart);
         }
 
-        // see #6518 + #6739
+        // See #6518 + #6739
         if (
             chart.boost.markerGroup &&
             chart.xAxis &&
@@ -287,39 +316,48 @@ function onChartCallback(
     }
 
     addEvent(chart, 'predraw', preRender);
-    addEvent(chart, 'render', canvasToSVG);
-
-    // addEvent(chart, 'zoom', function () {
-    //     chart.boostForceChartBoost =
-    //         shouldForceChartSeriesBoosting(chart);
-    // });
+    // Use the load event rather than redraw, otherwise user load events will
+    // fire too early (#18755)
+    addEvent(chart, 'load', canvasToSVG, { order: -1 });
+    addEvent(chart, 'redraw', canvasToSVG);
 
     let prevX = -1;
     let prevY = -1;
 
-    addEvent(chart.pointer, 'afterGetHoverData', (): void => {
-        const series = chart.hoverSeries;
+    addEvent(
+        chart.pointer,
+        'afterGetHoverData',
+        (e: Pointer.EventArgsObject): void => {
+            const series = e.hoverPoint?.series;
 
-        chart.boost = chart.boost || {};
+            chart.boost = chart.boost || {};
 
-        if (chart.boost.markerGroup && series) {
-            const xAxis = chart.inverted ? series.yAxis : series.xAxis;
-            const yAxis = chart.inverted ? series.xAxis : series.yAxis;
+            if (chart.boost.markerGroup && series) {
+                const xAxis = chart.inverted ? series.yAxis : series.xAxis;
+                const yAxis = chart.inverted ? series.xAxis : series.yAxis;
 
-            if (
-                (xAxis && xAxis.pos !== prevX) ||
-                (yAxis && yAxis.pos !== prevY)
-            ) {
-                // #10464: Keep the marker group position in sync with the
-                // position of the hovered series axes since there is only
-                // one shared marker group when boosting.
-                chart.boost.markerGroup.translate(xAxis.pos, yAxis.pos);
+                if (
+                    (xAxis && xAxis.pos !== prevX) ||
+                    (yAxis && yAxis.pos !== prevY)
+                ) {
+                    // #21176: If the axis is changed, hide teh halo without
+                    // animation  to prevent flickering of halos sharing the
+                    // same marker group
+                    chart.series.forEach((s): void => {
+                        s.halo?.hide();
+                    });
 
-                prevX = xAxis.pos;
-                prevY = yAxis.pos;
+                    // #10464: Keep the marker group position in sync with the
+                    // position of the hovered series axes since there is only
+                    // one shared marker group when boosting.
+                    chart.boost.markerGroup.translate(xAxis.pos, yAxis.pos);
+
+                    prevX = xAxis.pos;
+                    prevY = yAxis.pos;
+                }
             }
         }
-    });
+    );
 }
 
 /**
@@ -331,16 +369,15 @@ function onChartCallback(
  * @return {number}
  * Max value
  */
-function patientMax(...args: Array<Array<unknown>>): number {
+function patientMax(...args: Array<Array<unknown>|TypedArray>): number {
     let r = -Number.MAX_VALUE;
 
-    args.forEach(function (t: Array<unknown>): (boolean|undefined) {
+    args.forEach((t): boolean|undefined => {
         if (
             typeof t !== 'undefined' &&
             t !== null &&
             typeof t.length !== 'undefined'
         ) {
-            // r = r < t.length ? t.length : r;
             if (t.length > 0) {
                 r = t.length;
                 return true;

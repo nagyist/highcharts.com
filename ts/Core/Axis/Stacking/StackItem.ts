@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2021 Torstein Honsi
+ *  (c) 2010-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -17,18 +17,13 @@
  * */
 
 import type {
-    AlignObject,
     AlignValue,
     VerticalAlignValue
 } from '../../Renderer/AlignObject';
 import type Axis from '../Axis';
 import type BBoxObject from '../../Renderer/BBoxObject';
-import type Chart from '../../Chart/Chart';
 import type StackingAxis from './StackingAxis';
-import type {
-    StackLabelOptions,
-    StackOverflowValue
-} from './StackingOptions';
+import type { StackLabelOptions } from './StackingOptions';
 import type SVGAttributes from '../../Renderer/SVG/SVGAttributes';
 import type SVGElement from '../../Renderer/SVG/SVGElement';
 import type SVGLabel from '../../Renderer/SVG/SVGLabel';
@@ -41,10 +36,38 @@ import U from '../../Utilities.js';
 const {
     destroyObjectProperties,
     fireEvent,
+    getAlignFactor,
     isNumber,
-    merge,
     pick
 } = U;
+
+/* *
+ *
+ *  Declarations
+ *
+ * */
+
+export interface AdjustStackPositionProps {
+    labelBox: BBoxObject;
+    verticalAlign: VerticalAlignValue;
+    textAlign: AlignValue;
+}
+
+export interface AlignOptions {
+    verticalAlign: 'top'|'middle'|'bottom';
+    align: 'left'|'center'|'right';
+    x?: number;
+    y?: number;
+}
+
+export interface StackBoxProps {
+    xOffset: number;
+    width: number;
+    boxBottom?: number;
+    boxTop?: number;
+    defaultX?: number;
+    xAxis?: Axis;
+}
 
 /* *
  *
@@ -58,6 +81,7 @@ const {
  * @private
  */
 class StackItem {
+
     /* *
      *
      *  Constructor
@@ -69,7 +93,7 @@ class StackItem {
         options: StackLabelOptions,
         negativeValue: boolean,
         x: number,
-        stackOption?: StackOverflowValue
+        stackOption?: number|string
     ) {
         const inverted = axis.chart.inverted,
             reversed = axis.reversed;
@@ -120,6 +144,12 @@ class StackItem {
             (inverted ? (!isNegative ? 'left' : 'right') : 'center');
     }
 
+    /* *
+     *
+     *  Properties
+     *
+     * */
+
     public alignOptions: AlignOptions;
     public axis: StackingAxis;
     public base?: string;
@@ -135,11 +165,17 @@ class StackItem {
     public rotation?: number;
     public shadow?: SVGElement;
     public shadowGroup?: SVGElement;
-    public stack?: StackOverflowValue;
+    public stack?: string|number;
     public textAlign: AlignValue;
     public total: number | null;
     public touched?: number;
     public x: number;
+
+    /* *
+     *
+     *  Functions
+     *
+     * */
 
     /**
      * @private
@@ -162,7 +198,7 @@ class StackItem {
                 (options.formatter as any).call(this);
 
         // Change the text to reflect the new total and set visibility to hidden
-        // in case the serie is hidden
+        // in case the series is hidden
         if (this.label) {
             this.label.attr({ text: str, visibility: 'hidden' });
         } else {
@@ -182,9 +218,9 @@ class StackItem {
             const attr: SVGAttributes = {
                 r: options.borderRadius || 0,
                 text: str,
-                // set default padding to 5 as it is in datalabels #12308
+                // Set default padding to 5 as it is in datalabels #12308
                 padding: pick(options.padding, 5),
-                visibility: 'hidden' // hidden until setOffset is called
+                visibility: 'hidden' // Hidden until setOffset is called
             };
 
             if (!chart.styledMode) {
@@ -197,7 +233,7 @@ class StackItem {
             this.label.attr(attr);
 
             if (!this.label.added) {
-                this.label.add(group); // add to the labels-group
+                this.label.add(group); // Add to the labels-group
             }
         }
 
@@ -232,7 +268,7 @@ class StackItem {
             { verticalAlign } = alignOptions;
 
         if (label && stackBox) {
-            const labelBox = label.getBBox(),
+            const labelBox = label.getBBox(void 0, 0),
                 padding = label.padding;
             let isJustify = pick(options.overflow, 'justify') === 'justify',
                 visible;
@@ -277,13 +313,14 @@ class StackItem {
                 );
             }
 
-            // Add attr to aviod the default animation of justifyDataLabel.
+            // Add attr to avoid the default animation of justifyDataLabel.
             // Also add correct rotation with its rotation origin. #15129
             label.attr({
                 x: label.alignAttr.x,
                 y: label.alignAttr.y,
                 rotation: options.rotation,
-                rotationOriginX: labelBox.width / 2,
+                rotationOriginX: labelBox.width *
+                    getAlignFactor(options.textAlign || 'center'),
                 rotationOriginY: labelBox.height / 2
             });
 
@@ -293,7 +330,7 @@ class StackItem {
                     isNumber(label.x) &&
                     isNumber(label.y) &&
                     chart.isInsidePlot(
-                        label.x - padding + label.width,
+                        label.x - padding + (label.width || 0),
                         label.y
                     ) &&
                     chart.isInsidePlot(label.x + padding, label.y);
@@ -317,20 +354,10 @@ class StackItem {
         verticalAlign,
         textAlign
     }: AdjustStackPositionProps): {x: number, y: number} {
-        const factorMap = {
-                bottom: 0,
-                middle: 1,
-                top: 2,
-                right: 1,
-                center: 0,
-                left: -1
-            },
-            verticalAlignFactor = factorMap[verticalAlign],
-            textAlignFactor = factorMap[textAlign];
-
         return {
-            x: labelBox.width / 2 + (labelBox.width / 2) * textAlignFactor,
-            y: (labelBox.height / 2) * verticalAlignFactor
+            x: labelBox.width / 2 +
+                (labelBox.width / 2) * (2 * getAlignFactor(textAlign) - 1),
+            y: (labelBox.height / 2) * 2 * (1 - getAlignFactor(verticalAlign))
         };
     }
     /**
@@ -372,7 +399,7 @@ class StackItem {
         return inverted ?
             {
                 x: (neg ? y : y - height) - chart.plotLeft,
-                y: xAxis.height - x - width,
+                y: xAxis.height - x - width + xAxis.top - chart.plotTop,
                 width: height,
                 height: width
             } : {
@@ -384,27 +411,6 @@ class StackItem {
     }
 }
 
-interface AlignOptions {
-    verticalAlign: 'top'|'middle'|'bottom';
-    align: 'left'|'center'|'right';
-    x?: number;
-    y?: number;
-}
-
-export interface StackBoxProps {
-    xOffset: number;
-    width: number;
-    boxBottom?: number;
-    boxTop?: number;
-    defaultX?: number;
-    xAxis?: Axis;
-}
-
-export interface AdjustStackPositionProps {
-    labelBox: BBoxObject;
-    verticalAlign: VerticalAlignValue;
-    textAlign: AlignValue;
-}
 /* *
  *
  *  Default Export
@@ -459,4 +465,4 @@ export default StackItem;
  * @type {number}
  */
 
-''; // keeps doclets above in JS file
+''; // Keeps doclets above in JS file

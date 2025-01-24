@@ -1,9 +1,25 @@
 QUnit.test('RangeSelector update', function (assert) {
-    var chart = Highcharts.stockChart('container', {
+    const chart = Highcharts.stockChart('container', {
         chart: {
             width: 400,
             spacingBottom: 100
         },
+        navigator: {
+            adaptToUpdatedData: false
+        },
+        scrollbar: {
+            enabled: false
+        },
+        rangeSelector: {
+            selected: 3
+        },
+        series: [{}]
+    });
+
+    // No errors so far, with empty chart (#3487 and regression in
+    // RangeSelector)
+
+    chart.update({
         rangeSelector: {
             enabled: false
         },
@@ -24,6 +40,7 @@ QUnit.test('RangeSelector update', function (assert) {
     });
 
     assert.ok(chart.rangeSelector, 'chart.rangeSelector should be set');
+
 
     assert.strictEqual(
         chart.spacing[2],
@@ -51,11 +68,30 @@ QUnit.test('RangeSelector update', function (assert) {
 
     const before = eventCount(chart);
 
-    chart.rangeSelector.update();
+    chart.rangeSelector.update({});
 
     assert.strictEqual(
         eventCount(chart),
         before,
         '#14856: It should not leak chart event listeners on update'
+    );
+});
+
+QUnit.test('RangeSelector update hover', function (assert) {
+    var chart = Highcharts.stockChart('container', {
+        series: [{
+            pointInterval: 24 * 36e5,
+            pointStart: Date.UTC(2013, 0, 1),
+            data: Array.from({ length: 100 }, (_, x) => Math.sin(x / 10) * 10)
+        }]
+    });
+    const controller = new TestController(chart);
+    controller.mouseEnter([100, 15], [100, 25], {});
+    chart.redraw();
+
+    assert.strictEqual(
+        chart.rangeSelector.buttons[1].fill,
+        '#e6e6e6',
+        'Color of the button should be correct'
     );
 });

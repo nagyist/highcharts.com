@@ -1,0 +1,12 @@
+---
+name: Crossfilter
+author:
+  - Sophie Bremer
+js_wrap: b
+tags:
+  - Highcharts Dashboards demo
+categories:
+  - Basic:
+        priority: 100
+use_png_thumbnail: true
+...

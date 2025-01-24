@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009 - 2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -64,6 +64,11 @@ class ConfirmationPopup extends BaseForm {
         editMode: EditMode,
         options?: ConfirmationPopup.Options
     ) {
+        iconsURL =
+            options && options.close && options.close.icon ?
+                options.close.icon :
+                iconsURL;
+
         super(parentDiv, iconsURL);
 
         this.editMode = editMode;
@@ -77,9 +82,9 @@ class ConfirmationPopup extends BaseForm {
     * */
 
     /**
-     * Options for confirmation popup.
+     * Container for buttons.
      */
-    public options?: ConfirmationPopup.Options;
+    public buttonContainer: HTMLDOMElement|undefined;
     /**
      * Container for popup content.
      */
@@ -88,6 +93,14 @@ class ConfirmationPopup extends BaseForm {
      * The EditMode instance.
      */
     public editMode: EditMode;
+    /**
+     * Options for confirmation popup.
+     */
+    public options?: ConfirmationPopup.Options;
+    /**
+     * Show options for confirmation popup.
+     */
+    public contentOptions?: ConfirmationPopup.ContentOptions;
 
     /* *
     *
@@ -124,14 +137,28 @@ class ConfirmationPopup extends BaseForm {
     }
 
     /**
-     * Adds content inside the popup.
+     * Adds events to the close button.
      *
-     * @param options
-     * Options for confirmation popup.
+     * @override BaseForm.closeButtonEvents
      */
-    public renderContent(
-        options: ConfirmationPopup.ContentOptions
-    ): void {
+    public closeButtonEvents(): void {
+        const cancelCallback = this.contentOptions?.cancelButton.callback;
+        if (!cancelCallback) {
+            return;
+        }
+
+        cancelCallback();
+    }
+
+    /**
+     * Adds content inside the popup.
+     */
+    public renderContent(): void {
+        const options = this.contentOptions;
+        if (!options) {
+            return;
+        }
+
         // Render content wrapper
         this.contentContainer = createElement(
             'div', {
@@ -153,28 +180,34 @@ class ConfirmationPopup extends BaseForm {
             title: options.text || ''
         });
 
+        // Render button wrapper
+        this.buttonContainer = createElement(
+            'div', {
+                className: EditGlobals.classNames.popupButtonContainer
+            }, {},
+            this.container
+        );
+
         // Render cancel buttons
         EditRenderer.renderButton(
-            this.contentContainer,
+            this.buttonContainer,
             {
                 text: options.cancelButton.value,
+                className: EditGlobals.classNames.popupCancelBtn,
                 callback: options.cancelButton.callback
             }
         );
 
         // Confirm
         EditRenderer.renderButton(
-            this.contentContainer,
+            this.buttonContainer,
             {
                 text: options.confirmButton.value,
                 className: EditGlobals.classNames.popupConfirmBtn,
                 callback: (): void => {
-                    // Run callback
-                    // confirmCallback.call(context);
                     options.confirmButton.callback.call(
                         options.confirmButton.context
                     );
-                    // Hide popup
                     this.closePopup();
                 }
             }
@@ -190,8 +223,9 @@ class ConfirmationPopup extends BaseForm {
     public show(
         options: ConfirmationPopup.ContentOptions
     ): void {
+        this.contentOptions = options;
         this.showPopup();
-        this.renderContent(options);
+        this.renderContent();
         this.editMode.setEditOverlay();
     }
 
@@ -238,7 +272,7 @@ namespace ConfirmationPopup {
     export interface ConfirmButton {
         value: string;
         callback: Function;
-        context: RowEditToolbar|CellEditToolbar;
+        context?: RowEditToolbar|CellEditToolbar;
     }
 
     export interface CancelButton{

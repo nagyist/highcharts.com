@@ -41,8 +41,11 @@ const getBuildOptions = input => {
         base = './js/masters/',
         debug = false,
         namespace = 'Highcharts',
+        product = 'Highcharts',
         output = './code/',
-        version = getProductVersion()
+        version = getProductVersion(),
+        assetPrefix = void 0,
+        date = new Date().toISOString().split('T')[0]
     } = input;
     const files = (
         isArray(input.files) ?
@@ -62,7 +65,10 @@ const getBuildOptions = input => {
         output,
         type,
         version,
-        mapTypeToSource
+        mapTypeToSource,
+        product,
+        assetPrefix,
+        date
     };
 };
 
@@ -189,14 +195,18 @@ const fnFirstBuild = options => {
         files,
         namespace,
         output,
-        version
+        version,
+        assetPrefix,
+        product
     } = options;
     buildModules({
         base: pathJSParts,
         namespace,
         output,
         type: types,
-        version
+        version,
+        assetPrefix,
+        product
     });
     const promises = [];
     types.forEach(type => {
@@ -210,7 +220,9 @@ const fnFirstBuild = options => {
             namespace,
             output,
             type: [type],
-            version
+            version,
+            assetPrefix,
+            product
         }));
     });
     return Promise.all(promises);
@@ -225,6 +237,7 @@ const getBuildScripts = params => {
         mapTypeToSource,
         base
     } = options;
+
     const result = {
         fnFirstBuild: () => fnFirstBuild(options),
         mapOfWatchFn: {
@@ -253,8 +266,20 @@ const getBuildScripts = params => {
     return result;
 };
 
+function replaceMeta(text, input = {}) {
+    const { product, assetPrefix, version, date } = getBuildOptions(input);
+
+    const safeReplace = x => () => x;
+
+    return text.replace(/@product.name@/g, safeReplace(product))
+        .replace(/@product.assetPrefix@/g, safeReplace(assetPrefix))
+        .replace(/@product.version@/g, safeReplace(version))
+        .replace(/@product.date@/g, safeReplace(date));
+}
+
 module.exports = {
     getBuildScripts,
     getProductVersion,
-    scripts
+    scripts,
+    replaceMeta
 };

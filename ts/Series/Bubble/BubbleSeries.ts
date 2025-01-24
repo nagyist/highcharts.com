@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2021 Torstein Honsi
+ *  (c) 2010-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -21,23 +21,24 @@ import type BubbleSeriesOptions from './BubbleSeriesOptions';
 import type Chart from '../../Core/Chart/Chart';
 import type Legend from '../../Core/Legend/Legend';
 import type Point from '../../Core/Series/Point';
-import type SeriesType from '../../Core/Series/Series';
 import type { StatesOptionsKey } from '../../Core/Series/StatesOptions';
 import type SVGAttributes from '../../Core/Renderer/SVG/SVGAttributes';
-
+import type KDPointSearchObjectLike from '../../Core/Series/KDPointSearchObjectLike';
+import type PointerEvent from '../../Core/PointerEvent';
 import BubbleLegendComposition from './BubbleLegendComposition.js';
 import BubblePoint from './BubblePoint.js';
 import Color from '../../Core/Color/Color.js';
 const { parse: color } = Color;
 import H from '../../Core/Globals.js';
-const { noop } = H;
+const {
+    composed,
+    noop
+} = H;
 import SeriesRegistry from '../../Core/Series/SeriesRegistry.js';
 const {
     series: Series,
     seriesTypes: {
-        column: {
-            prototype: columnProto
-        },
+        column: { prototype: columnProto },
         scatter: ScatterSeries
     }
 } = SeriesRegistry;
@@ -50,7 +51,8 @@ const {
     extend,
     isNumber,
     merge,
-    pick
+    pick,
+    pushUnique
 } = U;
 
 /* *
@@ -62,12 +64,6 @@ const {
 declare module '../../Core/Chart/ChartLike'{
     interface ChartLike {
         bubbleZExtremes?: BubbleZExtremes;
-    }
-}
-
-declare module '../../Core/Axis/AxisLike' {
-    interface AxisLike {
-        beforePadding?(): void;
     }
 }
 
@@ -84,13 +80,8 @@ type BubblePxExtremes = { minPxSize: number; maxPxSize: number };
 
 type BubbleZExtremes = { zMin: number; zMax: number };
 
-/* *
- *
- *  Constants
- *
- * */
-
-const composedMembers: Array<unknown> = [];
+interface KDPointSearchObject extends KDPointSearchObjectLike {
+}
 
 /* *
  *
@@ -102,34 +93,33 @@ const composedMembers: Array<unknown> = [];
  * Add logic to pad each axis with the amount of pixels necessary to avoid the
  * bubbles to overflow.
  */
-function axisBeforePadding(
+function onAxisFoundExtremes(
     this: Axis
 ): void {
+
     const axisLength = this.len,
-        chart = this.chart,
-        isXAxis = this.isXAxis,
-        dataKey = isXAxis ? 'xData' : 'yData',
-        min = this.min,
-        range = (this.max as any) - (min as any);
+        { coll, isXAxis, min } = this,
+        range = (this.max || 0) - (min || 0);
 
     let pxMin = 0,
         pxMax = axisLength,
         transA = axisLength / range,
         hasActiveSeries;
 
+    if (coll !== 'xAxis' && coll !== 'yAxis') {
+        return;
+    }
+
     // Handle padding on the second pass, or on redraw
     this.series.forEach((series): void => {
 
-        if (
-            series.bubblePadding &&
-            (series.visible || !chart.options.chart.ignoreHiddenSeries)
-        ) {
+        if (series.bubblePadding && series.reserveSpace()) {
             // Correction for #1673
             this.allowZoomOutside = true;
 
             hasActiveSeries = true;
 
-            const data = (series as any)[dataKey];
+            const data = series.getColumn(isXAxis ? 'x' : 'y');
 
             if (isXAxis) {
                 (series.onPoint || (series as any)).getRadii(0, 0, series);
@@ -188,6 +178,42 @@ function axisBeforePadding(
 
 }
 
+/**
+ * If a user has defined categories, it is necessary to retroactively hide any
+ * ticks added by the 'onAxisFoundExtremes' function above (#21672).
+ *
+ * Otherwise they can show up on the axis, alongside user-defined categories.
+ */
+function onAxisAfterRender(this: Axis): void {
+    const {
+            ticks,
+            tickPositions,
+            dataMin = 0,
+            dataMax = 0,
+            categories
+        } = this,
+        type = this.options.type;
+
+    if (
+        (categories?.length || type === 'category') &&
+        this.series.find((s): boolean | undefined => s.bubblePadding)
+    ) {
+
+        let tickCount = tickPositions.length;
+
+        while (tickCount--) {
+            const tick = ticks[tickPositions[tickCount]],
+                pos = tick.pos || 0;
+
+
+            if (pos > dataMax || pos < dataMin) {
+                tick.label?.hide();
+            }
+        }
+
+    }
+}
+
 /* *
  *
  *  Class
@@ -221,7 +247,7 @@ class BubbleSeries extends ScatterSeries {
 
         dataLabels: {
             formatter: function (
-                this: Point.PointLabelObject
+                this: Point
             ): string { // #2945
                 const { numberFormatter } = this.series.chart;
                 const { z } = (this.point as BubblePoint);
@@ -262,7 +288,7 @@ class BubbleSeries extends ScatterSeries {
          */
         marker: {
 
-            lineColor: null as any, // inherit from series.color
+            lineColor: null as any, // Inherit from series.color
 
             lineWidth: 1,
 
@@ -476,13 +502,17 @@ class BubbleSeries extends ScatterSeries {
     public static compose(
         AxisClass: typeof Axis,
         ChartClass: typeof Chart,
-        LegendClass: typeof Legend,
-        SeriesClass: typeof SeriesType
+        LegendClass: typeof Legend
     ): void {
-        BubbleLegendComposition.compose(ChartClass, LegendClass, SeriesClass);
+        BubbleLegendComposition.compose(ChartClass, LegendClass);
 
-        if (U.pushUnique(composedMembers, AxisClass)) {
-            AxisClass.prototype.beforePadding = axisBeforePadding;
+        if (pushUnique(composed, 'Series.Bubble')) {
+            addEvent(AxisClass, 'foundExtremes', onAxisFoundExtremes);
+            addEvent(
+                AxisClass,
+                'afterRender',
+                onAxisAfterRender
+            );
         }
 
     }
@@ -493,23 +523,23 @@ class BubbleSeries extends ScatterSeries {
      *
      * */
 
-    public data: Array<BubblePoint> = void 0 as any;
+    public data!: Array<BubblePoint>;
 
     public displayNegative: BubbleSeriesOptions['displayNegative'];
 
-    public maxPxSize: number = void 0 as any;
+    public maxPxSize!: number;
 
-    public minPxSize: number = void 0 as any;
+    public minPxSize!: number;
 
-    public options: BubbleSeriesOptions = void 0 as any;
+    public options!: BubbleSeriesOptions;
 
-    public points: Array<BubblePoint> = void 0 as any;
+    public points!: Array<BubblePoint>;
 
-    public radii: Array<(number|null)> = void 0 as any;
+    public radii!: Array<(number|null)>;
 
-    public yData: Array<(number|null)> = void 0 as any;
+    public yData!: Array<(number|null)>;
 
-    public zData: Array<(number|null)> = void 0 as any;
+    public zData!: Array<(number|null)>;
 
     public zMax: BubbleSeriesOptions['zMax'];
 
@@ -531,21 +561,20 @@ class BubbleSeries extends ScatterSeries {
             this.points.length < (this.options.animationLimit as any) // #8099
         ) {
             this.points.forEach(function (point): void {
-                const { graphic } = point;
+                const { graphic, plotX = 0, plotY = 0 } = point;
 
                 if (graphic && graphic.width) { // URL symbols don't have width
 
                     // Start values
                     if (!this.hasRendered) {
                         graphic.attr({
-                            x: point.plotX,
-                            y: point.plotY,
+                            x: plotX,
+                            y: plotY,
                             width: 1,
                             height: 1
                         });
                     }
 
-                    // Run animation
                     graphic.animate(
                         this.markerAttribs(point),
                         this.options.animation
@@ -562,8 +591,8 @@ class BubbleSeries extends ScatterSeries {
      * @private
      */
     public getRadii(): void {
-        const zData = this.zData,
-            yData = this.yData,
+        const zData = this.getColumn('z'),
+            yData = this.getColumn('y'),
             radii = [] as Array<(number|null)>;
 
         let len: number,
@@ -581,12 +610,7 @@ class BubbleSeries extends ScatterSeries {
             let zMax = -Number.MAX_VALUE;
             let valid;
             this.chart.series.forEach((otherSeries): void => {
-                if (
-                    otherSeries.bubblePadding && (
-                        otherSeries.visible ||
-                        !this.chart.options.chart.ignoreHiddenSeries
-                    )
-                ) {
+                if (otherSeries.bubblePadding && otherSeries.reserveSpace()) {
                     const zExtremes = (
                         otherSeries.onPoint || (otherSeries as any)
                     ).getZExtremes();
@@ -690,7 +714,26 @@ class BubbleSeries extends ScatterSeries {
      * @private
      */
     public hasData(): boolean {
-        return !!this.processedXData.length; // != 0
+        return !!this.dataTable.rowCount;
+    }
+
+    /**
+     * @private
+     */
+    public markerAttribs(
+        point: Point,
+        state?: StatesOptionsKey
+    ): SVGAttributes {
+        const attr = super.markerAttribs(point, state),
+            { height = 0, width = 0 } = attr;
+
+        // Bubble needs a specific `markerAttribs` override because the markers
+        // are rendered into the potentially inverted `series.group`. Unlike
+        // regular markers, which are rendered into the `markerGroup` (#21125).
+        return this.chart.inverted ? extend(attr, {
+            x: (point.plotX || 0) - width / 2,
+            y: (point.plotY || 0) - height / 2
+        }) : attr;
     }
 
     /**
@@ -734,8 +777,8 @@ class BubbleSeries extends ScatterSeries {
         let i = data.length;
 
         while (i--) {
-            const point = data[i];
-            const radius = radii ? radii[i] : 0; // #1737
+            const point = data[i],
+                radius = radii ? radii[i] : 0; // #1737
 
             // Negative points means negative z values (#9728)
             if (this.zoneAxis === 'z') {
@@ -757,7 +800,7 @@ class BubbleSeries extends ScatterSeries {
                     width: 2 * radius,
                     height: 2 * radius
                 };
-            } else { // below zThreshold
+            } else { // Below zThreshold
                 // #1691
                 point.shapeArgs = point.plotY = point.dlBox = void 0;
                 point.isInside = false; // #17281
@@ -796,7 +839,7 @@ class BubbleSeries extends ScatterSeries {
     public getZExtremes(): BubbleZExtremes|undefined {
 
         const options = this.options,
-            zData = (this.zData || []).filter(isNumber);
+            zData = this.getColumn('z').filter(isNumber);
 
         if (zData.length) {
             const zMin = pick(options.zMin, clamp(
@@ -814,6 +857,58 @@ class BubbleSeries extends ScatterSeries {
         }
     }
 
+    /**
+     * @private
+     * @function Highcharts.Series#searchKDTree
+     */
+    public searchKDTree(
+        point: KDPointSearchObject,
+        compareX?: boolean,
+        e?: PointerEvent,
+        suppliedPointEvaluator: Function = noop,
+        suppliedBSideCheckEvaluator: Function = noop
+    ): (Point|undefined) {
+
+        suppliedPointEvaluator = (
+            p1: Point,
+            p2: Point,
+            comparisonProp: 'dist' | 'distX'
+        ): [Point, boolean] => {
+            const p1Dist = p1[comparisonProp] || 0;
+            const p2Dist = p2[comparisonProp] || 0;
+
+            let ret,
+                flip = false;
+
+            if (p1Dist < 0 && p2Dist < 0) {
+                ret = (
+                    p1Dist - (p1.marker?.radius || 0) >=
+                    p2Dist - (p2.marker?.radius || 0)
+                ) ?
+                    p1 :
+                    p2;
+
+                flip = true;
+            } else {
+                ret = p1Dist < p2Dist ? p1 : p2;
+            }
+
+            return [ret, flip];
+        };
+
+        suppliedBSideCheckEvaluator = (
+            a: number,
+            b: number,
+            flip: boolean
+        ): boolean => !flip && (a > b) || (a < b);
+        return super.searchKDTree(
+            point,
+            compareX,
+            e,
+            suppliedPointEvaluator,
+            suppliedBSideCheckEvaluator
+        );
+    }
 }
 
 /* *
@@ -828,16 +923,14 @@ interface BubbleSeries {
     isBubble: true;
     pointClass: typeof BubblePoint;
     specialGroup: 'group'|'markerGroup';
-    zoneAxis: string;
 }
 
 extend(BubbleSeries.prototype, {
     alignDataLabel: columnProto.alignDataLabel,
     applyZones: noop,
     bubblePadding: true,
-    buildKDTree: noop,
-    directTouch: true,
     isBubble: true,
+    keysAffectYAxis: ['y'],
     pointArrayMap: ['y', 'z'],
     pointClass: BubblePoint,
     parallelArrays: ['x', 'y', 'z'],
@@ -888,7 +981,7 @@ export default BubbleSeries;
  * @typedef {"area"|"width"} Highcharts.BubbleSizeByValue
  */
 
-''; // detach doclets above
+''; // Detach doclets above
 
 /* *
  *
@@ -901,7 +994,7 @@ export default BubbleSeries;
  * not specified, it is inherited from [chart.type](#chart.type).
  *
  * @extends   series,plotOptions.bubble
- * @excluding dataParser, dataURL, stack
+ * @excluding dataParser, dataURL, legendSymbolColor, stack
  * @product   highcharts highstock
  * @requires  highcharts-more
  * @apioption series.bubble
@@ -984,4 +1077,4 @@ export default BubbleSeries;
  * @apioption series.bubble.marker
  */
 
-''; // adds doclets above to transpiled file
+''; // Adds doclets above to transpiled file

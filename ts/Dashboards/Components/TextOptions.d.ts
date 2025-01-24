@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009 - 2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -15,10 +15,23 @@
  * */
 
 import type CSSObject from '../../Core/Renderer/CSSObject';
+
+/**
+ * Options for configuring a more custom text.
+*/
 declare interface TextOptions {
-    style?: CSSObject;
-    text?: string;
+    /**
+     * The class name which is added to the text element.
+    */
     className?: string;
+    /**
+     * A collection of CSS properties for the text.
+    */
+    style?: CSSObject;
+    /**
+     * The text content itself.
+    */
+    text?: string;
 }
 
 export default TextOptions;

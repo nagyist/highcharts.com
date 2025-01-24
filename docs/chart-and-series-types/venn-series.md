@@ -1,7 +1,7 @@
 Venn series
 ===
 
-The venn series has the ability to visualize both venn and vuler diagrams. They are often used in the fields of mathematics, statistics, logistics and computer science to visualize logical relationships.
+The venn series has the ability to visualize both Venn and Euler diagrams. They are often used in the fields of mathematics, statistics, logistics and computer science to visualize logical relationships.
 
 Euler diagrams displays a number of sets and the relationship between them. The sets are represented by circles, and the relation between the sets are represented by the overlap, or lack of overlap between the circles.
 
@@ -50,7 +50,7 @@ The following data will create two sets A and B, where both sets will have a pro
             value: 2
         }]
 
-So far there is no relationship between the two sets, and the current data will create two seperated circles for A and B. Another data point can be added to define the relationship between A and B. The following point will define an intersection between A and B, where the area of overlap will have a size of 1.
+So far there is no relationship between the two sets, and the current data will create two separated circles for A and B. Another data point can be added to define the relationship between A and B. The following point will define an intersection between A and B, where the area of overlap will have a size of 1.
 
 
     {
@@ -80,7 +80,7 @@ In the following example A and B will be named as Apples and Bananas, while the 
 
 The final visualization should now display a venn diagram of the relation between Apples and Bananas.
 
-<iframe width="100%" height="450" style="null" src=https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/highcharts/series-venn/basic/embedded/result/ allow="fullscreen"></iframe>
+<iframe width="100%" height="450" style="null" src=https://www.highcharts.com/samples/embed/highcharts/series-venn/basic allow="fullscreen"></iframe>
 
 Its configuration should in full look as the following.
 

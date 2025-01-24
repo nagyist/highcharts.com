@@ -14,6 +14,7 @@
  *
  * */
 
+import type { IndicatorLinkedSeriesLike } from '../IndicatorLike';
 import type IndicatorValuesObject from '../IndicatorValuesObject';
 import type LineSeries from '../../../Series/Line/LineSeries';
 import type MomentumOptions from './MomentumOptions';
@@ -98,9 +99,9 @@ class MomentumIndicator extends SMAIndicator {
      *
      * */
 
-    public data: Array<MomentumPoint> = void 0 as any;
-    public options: MomentumOptions = void 0 as any;
-    public points: Array<MomentumPoint> = void 0 as any;
+    public data!: Array<MomentumPoint>;
+    public options!: MomentumOptions;
+    public points!: Array<MomentumPoint>;
 
     /* *
      *
@@ -109,7 +110,7 @@ class MomentumIndicator extends SMAIndicator {
      * */
 
     public getValues<TLinkedSeries extends LineSeries>(
-        series: TLinkedSeries,
+        series: TLinkedSeries&IndicatorLinkedSeriesLike,
         params: MomentumOptions
     ): (IndicatorValuesObject<TLinkedSeries>|undefined) {
         const period: number = params.period,
@@ -210,4 +211,4 @@ export default MomentumIndicator;
  * @apioption series.momentum
  */
 
-''; // to include the above in the js output
+''; // To include the above in the js output

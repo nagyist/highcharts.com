@@ -2,7 +2,7 @@
  *
  *  X-range series module
  *
- *  (c) 2010-2021 Torstein Honsi, Lars A. V. Cabrera
+ *  (c) 2010-2024 Torstein Honsi, Lars A. V. Cabrera
  *
  *  License: www.highcharts.com/license
  *
@@ -29,21 +29,8 @@ import type {
 
 import SeriesRegistry from '../../Core/Series/SeriesRegistry.js';
 const {
-    series: {
-        prototype: {
-            pointClass: {
-                prototype: pointProto
-            }
-        }
-    },
-    seriesTypes: {
-        column: {
-            prototype: {
-                pointClass: ColumnPoint
-            }
-        }
-    }
-} = SeriesRegistry;
+    column: { prototype: { pointClass: ColumnPoint } }
+} = SeriesRegistry.seriesTypes;
 import U from '../../Core/Utilities.js';
 const { extend } = U;
 import XRangeSeries from './XRangeSeries.js';
@@ -54,14 +41,14 @@ import XRangeSeries from './XRangeSeries.js';
  *
  * */
 
-interface BBoxObjectWithCenter extends BBoxObject {
-    centerX?: number;
-}
-
 declare module '../../Core/Series/PointLike' {
     interface PointLike {
         tooltipDateKeys?: Array<string>;
     }
+}
+
+interface BBoxObjectWithCenter extends BBoxObject {
+    centerX?: number;
 }
 
 /* *
@@ -102,7 +89,7 @@ class XRangePoint extends ColumnPoint {
                 colors.length :
                 series.chart.options.chart.colorCount as any,
             colorIndex = (point.y as any) % colorCount,
-            color = colors && colors[colorIndex];
+            color = colors?.[colorIndex];
 
         return {
             colorIndex: colorIndex,
@@ -116,8 +103,8 @@ class XRangePoint extends ColumnPoint {
      *
      * */
 
-    public options: XRangePointOptions = void 0 as any;
-    public series: XRangeSeries = void 0 as any;
+    public options!: XRangePointOptions;
+    public series!: XRangeSeries;
     public dlBox?: BBoxObjectWithCenter;
 
     /* *
@@ -142,23 +129,36 @@ class XRangePoint extends ColumnPoint {
             if (!this.options.colorIndex) {
                 this.colorIndex = colorByPoint.colorIndex;
             }
-        } else if (!this.color) {
-            this.color = series.color;
+        } else {
+            this.color = this.options.color || series.color;
         }
-
     }
+
     /**
      * Extend init to have y default to 0.
      *
      * @private
      */
-    public init(): XRangePoint {
-        pointProto.init.apply(this, arguments as any);
+    public constructor(series: XRangeSeries, options: XRangePointOptions) {
+        super(series, options);
 
         if (!this.y) {
             this.y = 0;
         }
+    }
 
+    /**
+     * Extend applyOptions to handle time strings for x2
+     *
+     * @private
+     */
+    public applyOptions(
+        options: XRangePointOptions,
+        x: number
+    ): Point {
+        super.applyOptions(options, x);
+        this.x2 = this.series.chart.time.parse(this.x2);
+        this.isNull = !this.isValid?.();
         return this;
     }
 
@@ -166,25 +166,9 @@ class XRangePoint extends ColumnPoint {
      * @private
      */
     public setState(): void {
-        pointProto.setState.apply(this, arguments as any);
+        super.setState.apply(this, arguments as any);
 
         this.series.drawPoint(this, this.series.getAnimationVerb());
-    }
-
-    /**
-     * Add x2 and yCategory to the available properties for tooltip formats.
-     *
-     * @private
-     */
-    public getLabelConfig(): XRangePoint.XRangePointLabelObject {
-        const cfg = pointProto.getLabelConfig.call(this) as
-                XRangePoint.XRangePointLabelObject,
-            yCats = this.series.yAxis.categories;
-
-        cfg.x2 = this.x2;
-        cfg.yCategory = this.yCategory = yCats && yCats[this.y as any];
-
-        return cfg;
     }
 
     /**
@@ -199,7 +183,7 @@ class XRangePoint extends ColumnPoint {
 
 /* *
  *
- * Class Prototype
+ *  Class Prototype
  *
  * */
 
@@ -214,6 +198,7 @@ interface XRangePoint {
     yCategory?: string;
 
 }
+
 extend(XRangePoint.prototype, {
     ttBelow: false,
     tooltipDateKeys: ['x', 'x2']
@@ -224,13 +209,6 @@ extend(XRangePoint.prototype, {
  *  Class Namespace
  *
  * */
-
-declare namespace XRangePoint {
-    interface XRangePointLabelObject extends Point.PointLabelObject {
-        x2?: XRangePoint['x2'];
-        yCategory?: XRangePoint['yCategory'];
-    }
-}
 
 /* *
  *
@@ -254,16 +232,6 @@ export default XRangePoint;
  */
 
 /**
- * Extend applyOptions so that `colorByPoint` for x-range means that one
- * color is applied per Y axis category.
- *
- * @private
- * @function Highcharts.Point#applyOptions
- *
- * @return {Highcharts.Series}
- */
-
-/**
  * @interface Highcharts.PointOptionsObject in parts/Point.ts
  *//**
  * The ending X value of the range point.
@@ -272,4 +240,4 @@ export default XRangePoint;
  * @requires modules/xrange
  */
 
-(''); // keeps doclets above in JS file
+(''); // Keeps doclets above in JS file

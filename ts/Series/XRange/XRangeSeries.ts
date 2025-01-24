@@ -2,7 +2,7 @@
  *
  *  X-range series module
  *
- *  (c) 2010-2021 Torstein Honsi, Lars A. V. Cabrera
+ *  (c) 2010-2024 Torstein Honsi, Lars A. V. Cabrera
  *
  *  License: www.highcharts.com/license
  *
@@ -20,6 +20,7 @@
 
 import type Axis from '../../Core/Axis/Axis';
 import type ColumnMetricsObject from '../Column/ColumnMetricsObject';
+import type DataTableCore from '../../Data/DataTableCore';
 import type SeriesClass from '../../Core/Series/Series';
 import type { SeriesStateHoverOptions } from '../../Core/Series/SeriesOptions';
 import type {
@@ -30,22 +31,21 @@ import type XRangeSeriesOptions from './XRangeSeriesOptions';
 import type SVGAttributes from '../../Core/Renderer/SVG/SVGAttributes';
 
 import H from '../../Core/Globals.js';
-const { noop } = H;
+const {
+    composed,
+    noop
+} = H;
 import Color from '../../Core/Color/Color.js';
 const { parse: color } = Color;
 import SeriesRegistry from '../../Core/Series/SeriesRegistry.js';
 const {
-    series: {
-        prototype: seriesProto
-    },
-    seriesTypes: {
-        column: ColumnSeries
-    }
-} = SeriesRegistry;
+    column: ColumnSeries
+} = SeriesRegistry.seriesTypes;
 import U from '../../Core/Utilities.js';
 const {
     addEvent,
     clamp,
+    crisp,
     defined,
     extend,
     find,
@@ -53,18 +53,11 @@ const {
     isObject,
     merge,
     pick,
+    pushUnique,
     relativeLength
 } = U;
 import XRangeSeriesDefaults from './XRangeSeriesDefaults.js';
 import XRangePoint from './XRangePoint.js';
-
-/* *
- *
- *  Constants
- *
- * */
-
-const composedMembers: Array<unknown> = [];
 
 /* *
  *
@@ -85,9 +78,14 @@ function onAxisAfterGetSeriesExtremes(
     if (this.isXAxis) {
         dataMax = pick(this.dataMax, -Number.MAX_VALUE);
         for (const series of this.series as Array<XRangeSeries>) {
-            if (series.x2Data) {
-                for (const val of series.x2Data) {
-                    if (val && val > dataMax) {
+            const column = (
+                series.dataTable.getColumn('x2', true) ||
+                series.dataTable.getColumn('end', true)
+            );
+
+            if (column) {
+                for (const val of (column as any)) {
+                    if (isNumber(val) && val > dataMax) {
                         dataMax = val;
                         modMax = true;
                     }
@@ -137,7 +135,7 @@ class XRangeSeries extends ColumnSeries {
         AxisClass: typeof Axis
     ): void {
 
-        if (U.pushUnique(composedMembers, AxisClass)) {
+        if (pushUnique(composed, 'Series.XRange')) {
             addEvent(
                 AxisClass,
                 'afterGetSeriesExtremes',
@@ -153,9 +151,9 @@ class XRangeSeries extends ColumnSeries {
      *
      * */
 
-    public data: Array<XRangePoint> = void 0 as any;
-    public options: XRangeSeriesOptions = void 0 as any;
-    public points: Array<XRangePoint> = void 0 as any;
+    public data!: Array<XRangePoint>;
+    public options!: XRangeSeriesOptions;
+    public points!: Array<XRangePoint>;
 
     /* *
      *
@@ -200,25 +198,27 @@ class XRangeSeries extends ColumnSeries {
      * @private
      */
     public cropData(
-        xData: Array<number>,
-        yData: Array<number>,
+        table: DataTableCore,
         min: number,
         max: number
     ): SeriesClass.CropDataObject {
 
         // Replace xData with x2Data to find the appropriate cropStart
-        const crop = seriesProto.cropData.call(
-            this,
-            this.x2Data as any,
-            yData,
-            min,
-            max
-        );
+        const xData = table.getColumn('x') || [],
+            x2Data = table.getColumn('x2');
+
+        table.setColumn('x', x2Data, void 0, { silent: true });
+        const croppedData = super.cropData(table, min, max);
 
         // Re-insert the cropped xData
-        crop.xData = xData.slice(crop.start, crop.end);
+        table.setColumn(
+            'x',
+            xData.slice(croppedData.start, croppedData.end),
+            void 0,
+            { silent: true }
+        );
 
-        return crop;
+        return croppedData;
     }
 
     /**
@@ -268,7 +268,14 @@ class XRangeSeries extends ColumnSeries {
 
     public alignDataLabel(point: XRangePoint): void {
         const oldPlotX = point.plotX;
-        point.plotX = pick(point.dlBox && point.dlBox.centerX, point.plotX);
+        point.plotX = pick(point.dlBox?.centerX, point.plotX);
+
+        if (point.dataLabel && point.shapeArgs?.width) {
+            point.dataLabel.css({
+                width: `${point.shapeArgs.width}px`
+            });
+        }
+
         super.alignDataLabel.apply(this, arguments);
         point.plotX = oldPlotX;
     }
@@ -282,10 +289,12 @@ class XRangeSeries extends ColumnSeries {
             metrics = this.columnMetrics,
             options = this.options,
             minPointLength = options.minPointLength || 0,
-            oldColWidth = (point.shapeArgs && point.shapeArgs.width || 0) / 2,
+            oldColWidth = (point.shapeArgs?.width || 0) / 2,
             seriesXOffset = this.pointXOffset = metrics.offset,
             posX = pick(point.x2, (point.x as any) + (point.len || 0)),
-            borderRadius = options.borderRadius;
+            borderRadius = options.borderRadius,
+            plotTop = this.chart.plotTop,
+            plotLeft = this.chart.plotLeft;
 
 
         let plotX = point.plotX,
@@ -299,8 +308,7 @@ class XRangeSeries extends ColumnSeries {
 
         const length = Math.abs((plotX2 as any) - (plotX as any)),
             inverted = this.chart.inverted,
-            borderWidth = pick(options.borderWidth, 1),
-            crisper = borderWidth % 2 / 2;
+            borderWidth = pick(options.borderWidth, 1);
 
         let widthDifference,
             partialFill: (
@@ -341,7 +349,8 @@ class XRangeSeries extends ColumnSeries {
             yAxis.categories
         ) {
             point.plotY = yAxis.translate(
-                (point.y as any),
+                (
+                    point.y as any),
                 0 as any,
                 1 as any,
                 0 as any,
@@ -350,14 +359,14 @@ class XRangeSeries extends ColumnSeries {
             );
         }
 
-        const x = Math.floor(Math.min(plotX, plotX2)) + crisper,
-            x2 = Math.floor(Math.max(plotX, plotX2)) + crisper,
+        const x = crisp(Math.min(plotX, plotX2), borderWidth),
+            x2 = crisp(Math.max(plotX, plotX2), borderWidth),
             width = x2 - x;
 
         const r = Math.min(
             relativeLength((
                 typeof borderRadius === 'object' ?
-                    borderRadius.radius :
+                    (borderRadius as any).radius :
                     borderRadius || 0
             ), pointHeight),
             Math.min(width, pointHeight) / 2
@@ -365,7 +374,7 @@ class XRangeSeries extends ColumnSeries {
 
         const shapeArgs = {
             x,
-            y: Math.floor((point.plotY as any) + yOffset) + crisper,
+            y: crisp((point.plotY || 0) + yOffset, borderWidth),
             width,
             height: pointHeight,
             r
@@ -413,22 +422,22 @@ class XRangeSeries extends ColumnSeries {
         );
 
         // Centering tooltip position (#14147)
-        if (!inverted) {
+        if (inverted) {
+            tooltipPos[xIndex] += shapeArgs.width / 2;
+        } else {
             tooltipPos[xIndex] = clamp(
                 tooltipPos[xIndex] +
                 (xAxis.reversed ? -1 : 0) * shapeArgs.width,
-                0,
-                xAxis.len - 1
+                xAxis.left - plotLeft,
+                xAxis.left + xAxis.len - plotLeft - 1
             );
-        } else {
-            tooltipPos[xIndex] += shapeArgs.width / 2;
         }
         tooltipPos[yIndex] = clamp(
             tooltipPos[yIndex] + (
                 (inverted ? -1 : 1) * tooltipYOffset
             ),
-            0,
-            yAxis.len - 1
+            yAxis.top - plotTop,
+            yAxis.top + yAxis.len - plotTop - 1
         );
 
         // Add a partShapeArgs to the point, based on the shapeArgs property
@@ -461,6 +470,12 @@ class XRangeSeries extends ColumnSeries {
                 height: shapeArgs.height
             };
         }
+
+        // Add formatting keys for tooltip and data labels. Use 'category' as
+        // 'key' to ensure tooltip datetime formatting. Use 'name' only when
+        // 'category' is undefined.
+        point.key = point.category || point.name;
+        point.yCategory = yAxis.categories?.[point.y ?? -1];
     }
 
     /**
@@ -498,7 +513,6 @@ class XRangeSeries extends ColumnSeries {
             shapeArgs = point.shapeArgs,
             partShapeArgs = point.partShapeArgs,
             clipRectArgs = point.clipRectArgs,
-            cutOff = seriesOpts.stacking && !seriesOpts.borderRadius,
             pointState = point.state,
             stateOpts: SeriesStateHoverOptions = (
                 (seriesOpts.states as any)[pointState || 'normal'] ||
@@ -518,7 +532,7 @@ class XRangeSeries extends ColumnSeries {
         if (!point.isNull && point.visible !== false) {
 
             // Original graphic
-            if (graphic) { // update
+            if (graphic) { // Update
                 graphic.rect[verb](shapeArgs);
             } else {
                 point.graphic = graphic = renderer.g('point')
@@ -664,8 +678,6 @@ class XRangeSeries extends ColumnSeries {
     }
     //*/
 
-    /* eslint-enable valid-jsdoc */
-
 }
 
 /* *
@@ -677,23 +689,22 @@ class XRangeSeries extends ColumnSeries {
 interface XRangeSeries {
     pointClass: typeof XRangePoint;
     columnMetrics: ColumnMetricsObject;
-    cropShoulder: number;
     getExtremesFromAll: boolean;
     parallelArrays: Array<string>;
     requireSorting: boolean;
     type: string;
     x2Data: Array<(number|undefined)>;
-    animate: typeof seriesProto.animate;
 }
 
 extend(XRangeSeries.prototype, {
     pointClass: XRangePoint,
-    cropShoulder: 1,
+    pointArrayMap: ['x2', 'y'],
     getExtremesFromAll: true,
+    keysAffectYAxis: ['y'],
     parallelArrays: ['x', 'x2', 'y'],
     requireSorting: false,
     type: 'xrange',
-    animate: seriesProto.animate,
+    animate: SeriesRegistry.series.prototype.animate,
     autoIncrement: noop,
     buildKDTree: noop
 });

@@ -1,6 +1,15 @@
-@import url("https://code.highcharts.com/css/dashboards/gui.css");
+@import url("https://code.highcharts.com/dashboards/css/dashboards.css");
 
-#dashboard-3 h1 {
-    height: 400px;
-    text-align: center;
+#main-title {
+    color: #4b4b4b;
+}
+
+#description {
+    text-decoration: underline;
+}
+
+@media screen and (max-width: 576px) {
+    .highcharts-dashboards-cell {
+        flex: 1 1 100%;
+    }
 }

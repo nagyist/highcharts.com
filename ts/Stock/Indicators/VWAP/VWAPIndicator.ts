@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2021 Paweł Dalek
+ *  (c) 2010-2024 Paweł Dalek
  *
  *  Volume Weighted Average Price (VWAP) indicator for Highcharts Stock
  *
@@ -19,6 +19,7 @@
  * */
 
 import type Chart from '../../../Core/Chart/Chart';
+import type { IndicatorLinkedSeriesLike } from '../IndicatorLike';
 import type IndicatorValuesObject from '../IndicatorValuesObject';
 import type LineSeries from '../../../Series/Line/LineSeries';
 import type {
@@ -79,7 +80,7 @@ class VWAPIndicator extends SMAIndicator {
          * @excluding index
          */
         params: {
-            index: void 0, // unchangeable index, do not inherit (#15362)
+            index: void 0, // Unchangeable index, do not inherit (#15362)
             period: 30,
             /**
              * The id of volume series which is mandatory. For example using
@@ -96,9 +97,9 @@ class VWAPIndicator extends SMAIndicator {
      *
      * */
 
-    public data: Array<VWAPPoint> = void 0 as any;
-    public points: Array<VWAPPoint> = void 0 as any;
-    public options: VWAPOptions = void 0 as any;
+    public data!: Array<VWAPPoint>;
+    public points!: Array<VWAPPoint>;
+    public options!: VWAPOptions;
 
     /* *
      *
@@ -107,7 +108,7 @@ class VWAPIndicator extends SMAIndicator {
      * */
 
     public getValues<TLinkedSeries extends LineSeries>(
-        series: TLinkedSeries,
+        series: TLinkedSeries&IndicatorLinkedSeriesLike,
         params: VWAPParamsOptions
     ): (IndicatorValuesObject<TLinkedSeries>|undefined) {
         const indicator = this,
@@ -181,8 +182,8 @@ class VWAPIndicator extends SMAIndicator {
         volumeSeries: TLinkedSeries,
         period: number
     ): IndicatorValuesObject<TLinkedSeries> {
-        const volumeValues: Array<number> = (volumeSeries.yData as any),
-            volumeLength: number = (volumeSeries.xData as any).length,
+        const volumeValues: Array<number> = volumeSeries.getColumn('y'),
+            volumeLength: number = volumeValues.length,
             pointsLength: number = xValues.length,
             cumulativePrice: Array<number> = [],
             cumulativeVolume: Array<number> = [],
@@ -294,4 +295,4 @@ export default VWAPIndicator;
  * @apioption series.vwap
  */
 
-''; // to include the above in the js output
+''; // To include the above in the js output

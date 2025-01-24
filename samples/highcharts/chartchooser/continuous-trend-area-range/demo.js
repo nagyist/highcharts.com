@@ -30,7 +30,7 @@ Highcharts.chart('container', {
 
     data: {
         csvURL:
-        'https://cdn.jsdelivr.net/gh/highcharts/highcharts@24912efc85/samples/data/bergen-wind-prediction.csv',
+        'https://www.highcharts.com/samples/data/bergen-wind-prediction.csv',
         seriesMapping: [{ low: 0, high: 1 }, { y: 2 }],
         complete: function (options) {
             options.series[0].name = 'Possible wind';
@@ -46,7 +46,7 @@ Highcharts.chart('container', {
             marker: {
                 enabled: false
             },
-            pointStart: Date.UTC(2022, 3, 3, 15),
+            pointStart: '2022-04-03 15:00',
             pointInterval: 36e5 // one hour
         }
     },

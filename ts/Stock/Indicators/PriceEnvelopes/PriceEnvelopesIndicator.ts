@@ -14,6 +14,7 @@
  *
  * */
 
+import type { IndicatorLinkedSeriesLike } from '../IndicatorLike';
 import type IndicatorValuesObject from '../IndicatorValuesObject';
 import type LineSeries from '../../../Series/Line/LineSeries';
 import type {
@@ -141,9 +142,9 @@ class PriceEnvelopesIndicator extends SMAIndicator {
      *
      * */
 
-    public data: Array<PriceEnvelopesPoint> = void 0 as any;
-    public options: PriceEnvelopesOptions = void 0 as any;
-    public points: Array<PriceEnvelopesPoint> = void 0 as any;
+    public data!: Array<PriceEnvelopesPoint>;
+    public options!: PriceEnvelopesOptions;
+    public points!: Array<PriceEnvelopesPoint>;
 
     /* *
      *
@@ -170,7 +171,7 @@ class PriceEnvelopesIndicator extends SMAIndicator {
     }
 
     public getValues <TLinkedSeries extends LineSeries>(
-        series: TLinkedSeries,
+        series: TLinkedSeries&IndicatorLinkedSeriesLike,
         params: PriceEnvelopesParamsOptions
     ): (IndicatorValuesObject<TLinkedSeries>|undefined) {
         const period = params.period,
@@ -181,7 +182,7 @@ class PriceEnvelopesIndicator extends SMAIndicator {
             yValLen: number = yVal ? yVal.length : 0,
             // 0- date, 1-top line, 2-middle line, 3-bottom line
             PE: Array<Array<number>> = [],
-            // middle line, top line and bottom line
+            // Middle line, top line and bottom line
             xData: Array<number> = [],
             yData: Array<Array<number>> = [];
 
@@ -317,4 +318,4 @@ export default PriceEnvelopesIndicator;
  * @apioption series.priceenvelopes
  */
 
-''; // to include the above in the js output
+''; // To include the above in the js output

@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2021 Torstein Honsi
+ *  (c) 2010-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -93,19 +93,11 @@ namespace ColorAxisComposition {
 
     /* *
      *
-     *  Constants
-     *
-     * */
-
-    const composedMembers: Array<unknown> = [];
-
-    /* *
-     *
      *  Variables
      *
      * */
 
-    let ColorAxisClass: typeof ColorAxis;
+    let ColorAxisConstructor: typeof ColorAxis;
 
     /* *
      *
@@ -113,44 +105,35 @@ namespace ColorAxisComposition {
      *
      * */
 
-    /* eslint-disable valid-jsdoc */
-
     /**
      * @private
      */
     export function compose(
-        ColorAxisType: typeof ColorAxis,
+        ColorAxisClass: typeof ColorAxis,
         ChartClass: typeof Chart,
         FxClass: typeof Fx,
         LegendClass: typeof Legend,
         SeriesClass: typeof Series
     ): void {
+        const chartProto = ChartClass.prototype,
+            fxProto = FxClass.prototype,
+            seriesProto = SeriesClass.prototype;
 
-        if (!ColorAxisClass) {
-            ColorAxisClass = ColorAxisType;
-        }
-
-        if (U.pushUnique(composedMembers, ChartClass)) {
-            const chartProto = ChartClass.prototype;
+        if (!chartProto.collectionsWithUpdate.includes('colorAxis')) {
+            ColorAxisConstructor = ColorAxisClass;
 
             chartProto.collectionsWithUpdate.push('colorAxis');
             chartProto.collectionsWithInit.colorAxis = [
                 chartProto.addColorAxis
             ];
 
-            addEvent(ChartClass, 'afterGetAxes', onChartAfterGetAxes);
+            addEvent(ChartClass, 'afterCreateAxes', onChartAfterCreateAxes);
 
             wrapChartCreateAxis(ChartClass);
-        }
-
-        if (U.pushUnique(composedMembers, FxClass)) {
-            const fxProto = FxClass.prototype;
 
             fxProto.fillSetter = wrapFxFillSetter;
             fxProto.strokeSetter = wrapFxStrokeSetter;
-        }
 
-        if (U.pushUnique(composedMembers, LegendClass)) {
             addEvent(LegendClass, 'afterGetAllItems', onLegendAfterGetAllItems);
             addEvent(
                 LegendClass,
@@ -158,18 +141,16 @@ namespace ColorAxisComposition {
                 onLegendAfterColorizeItem
             );
             addEvent(LegendClass, 'afterUpdate', onLegendAfterUpdate);
-        }
 
-        if (U.pushUnique(composedMembers, SeriesClass)) {
             extend(
-                SeriesClass.prototype,
+                seriesProto,
                 {
                     optionalAxis: 'colorAxis',
                     translateColors: seriesTranslateColors
                 }
             );
             extend(
-                SeriesClass.prototype.pointClass.prototype,
+                seriesProto.pointClass.prototype,
                 {
                     setVisible: pointSetVisible
                 }
@@ -187,21 +168,26 @@ namespace ColorAxisComposition {
     }
 
     /**
-     * Extend the chart getAxes method to also get the color axis.
+     * Extend the chart createAxes method to also make the color axis.
      * @private
      */
-    function onChartAfterGetAxes(
+    function onChartAfterCreateAxes(
         this: Chart
     ): void {
-        const options = this.options;
+        const { userOptions } = this;
 
         this.colorAxis = [];
 
-        if (options.colorAxis) {
-            options.colorAxis = splat(options.colorAxis);
-            options.colorAxis.forEach((axisOptions): void => {
-                new ColorAxisClass(this, axisOptions); // eslint-disable-line no-new
-            });
+        // If a `colorAxis` config is present in the user options (not in a
+        // theme), instanciate it.
+        if (userOptions.colorAxis) {
+            userOptions.colorAxis = splat(userOptions.colorAxis);
+            userOptions.colorAxis.map((axisOptions): ColorAxis => (
+                new ColorAxisConstructor(
+                    this,
+                    axisOptions as Partial<ColorAxis.Options>
+                )
+            ));
         }
     }
 
@@ -233,7 +219,7 @@ namespace ColorAxisComposition {
         colorAxes.forEach(function (colorAxis: ColorAxis): void {
             options = colorAxis.options;
 
-            if (options && options.showInLegend) {
+            if (options?.showInLegend) {
                 // Data classes
                 if (options.dataClasses && options.visible) {
                     colorAxisItems = colorAxisItems.concat(
@@ -290,14 +276,13 @@ namespace ColorAxisComposition {
      * Updates in the legend need to be reflected in the color axis. (#6888)
      * @private
      */
-    function onLegendAfterUpdate(this: Legend): void {
-        const colorAxes = this.chart.colorAxis;
-
-        if (colorAxes) {
-            colorAxes.forEach(function (colorAxis): void {
-                colorAxis.update({}, arguments[2]);
-            });
-        }
+    function onLegendAfterUpdate(
+        this: Legend,
+        e: { redraw: boolean|undefined }
+    ): void {
+        this.chart.colorAxis?.forEach((colorAxis): void => {
+            colorAxis.update({}, e.redraw);
+        });
     }
 
     /**
@@ -308,8 +293,7 @@ namespace ColorAxisComposition {
         this: Series
     ): void {
         if (
-            this.chart.colorAxis &&
-            this.chart.colorAxis.length ||
+            this.chart.colorAxis?.length ||
             (this as TreemapSeries).colorAttribs
         ) {
             this.translateColors();
@@ -354,7 +338,7 @@ namespace ColorAxisComposition {
                 (point as any)[key][method]();
             }
         });
-        this.series.buildKDTree(); // rebuild kdtree #13195
+        this.series.buildKDTree(); // Rebuild kdtree #13195
     }
 
     /**
@@ -365,7 +349,7 @@ namespace ColorAxisComposition {
      */
     function seriesTranslateColors(this: SeriesComposition): void {
         const series = this,
-            points = this.data.length ? this.data : this.points,
+            points = this.getPointsCollection() as PointComposition[], // #17945
             nullColor = this.options.nullColor,
             colorAxis = this.colorAxis,
             colorKey = this.colorKey;
@@ -406,29 +390,37 @@ namespace ColorAxisComposition {
             type: string,
             options: Chart.CreateAxisOptionsObject
         ): (Axis|ColorAxis) {
+            const chart = this;
+
             if (type !== 'colorAxis') {
-                return superCreateAxis.apply(this, arguments);
+                return superCreateAxis.apply(chart, arguments);
             }
 
-            const axis = new ColorAxisClass(this, merge(options.axis, {
-                index: (this as AnyRecord)[type].length,
-                isX: false
-            }));
+            const axis = new ColorAxisConstructor(
+                chart,
+                merge(
+                    options.axis as Partial<ColorAxis.Options>,
+                    {
+                        index: (chart as AnyRecord)[type].length,
+                        isX: false
+                    }
+                )
+            );
 
-            this.isDirtyLegend = true;
+            chart.isDirtyLegend = true;
 
             // Clear before 'bindAxes' (#11924)
-            this.axes.forEach(function (axis): void {
+            chart.axes.forEach((axis): void => {
                 axis.series = [];
             });
 
-            this.series.forEach(function (series): void {
+            chart.series.forEach((series): void => {
                 series.bindAxes();
                 series.isDirtyData = true;
             });
 
             if (pick(options.redraw, true)) {
-                this.redraw(options.animation);
+                chart.redraw(options.animation);
             }
 
             return axis;

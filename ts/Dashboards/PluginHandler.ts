@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009 - 2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -18,6 +18,8 @@
  *  Imports
  *
  * */
+
+import type Globals from './Globals';
 
 import Board from './Board.js';
 import Sync from './Components/Sync/Sync.js';
@@ -37,7 +39,7 @@ namespace PluginHandler {
      *
      * */
 
-    export interface DashboardPlugin<T = (AnyRecord|undefined)> {
+    export interface DashboardsPlugin<T = (Globals.AnyRecord|undefined)> {
         /** @internal */
         custom: T;
         /**
@@ -76,7 +78,7 @@ namespace PluginHandler {
      * */
 
     /** @internal */
-    export const registry: Record<string, DashboardPlugin> = {};
+    export const registry: Record<string, DashboardsPlugin> = {};
 
     /**
      * Revision of the Dashboard plugin API.
@@ -101,7 +103,7 @@ namespace PluginHandler {
      * Plugin key for the registry. (Default: `plugin.name`)
      */
     export function addPlugin(
-        plugin: DashboardPlugin,
+        plugin: DashboardsPlugin,
         key: string = plugin.name
     ): void {
         const {
@@ -111,7 +113,7 @@ namespace PluginHandler {
         } = plugin;
 
         if (registry[key]) {
-            // only throw error with custom key
+            // Only throw error with custom key
             if (key !== plugin.name) {
                 throw new Error(`Plugin '${key}' already registered.`);
             }

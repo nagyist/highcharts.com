@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2021 Torstein Honsi
+ *  (c) 2010-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -33,7 +33,9 @@ import type { SymbolTypeRegistry } from '../Renderer/SVG/SymbolType';
  *
  * */
 
-export type DataLabelFilterOperatorValue = ('>'|'<'|'>='|'<='|'=='|'===');
+export type DataLabelFilterOperatorValue = (
+    '>'|'<'|'>='|'<='|'=='|'==='|'!='|'!=='
+);
 
 export interface TextPathAttributes extends SVGAttributes {
     startOffset?: string;
@@ -48,12 +50,13 @@ export interface DataLabelFilterOptions {
 }
 
 export interface DataLabelFormatterCallback {
-    (this: Point.PointLabelObject): (number|string|null|undefined);
+    (this: Point): (number|string|null|undefined);
 }
 
 export interface DataLabelOptions {
     animation?: (boolean|Partial<AnimationOptions>);
     align?: AlignValue;
+    alignTo?: 'connectors'|'plotEdges';
     allowOverlap?: boolean;
     backgroundColor?: ColorType;
     borderColor?: ColorType;
@@ -63,12 +66,13 @@ export interface DataLabelOptions {
     color?: ColorString;
     crop?: boolean;
     defer?: boolean;
-    distance?: number;
+    distance?: number|string;
     enabled?: boolean;
     filter?: DataLabelFilterOptions;
     format?: string;
     formatter?: DataLabelFormatterCallback;
     inside?: boolean;
+    labelrank?: number;
     nullFormat?: (boolean|string);
     overflow?: DataLabelOverflowValue;
     padding?: number;

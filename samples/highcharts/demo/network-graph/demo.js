@@ -5,9 +5,11 @@ Highcharts.addEvent(
     Highcharts.Series,
     'afterSetOptions',
     function (e) {
-        var colors = Highcharts.getOptions().colors,
-            i = 0,
+
+        const colors = Highcharts.getOptions().colors,
             nodes = {};
+
+        let i = 0;
 
         if (
             this instanceof Highcharts.Series.types.networkgraph &&
@@ -62,7 +64,10 @@ Highcharts.chart('container', {
             keys: ['from', 'to'],
             layoutAlgorithm: {
                 enableSimulation: true,
-                friction: -0.9
+                friction: -0.9,
+                gravitationalConstant:
+                    document.getElementById('container').scrollWidth < 500 ?
+                        0.2 : 0.06
             }
         }
     },

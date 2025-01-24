@@ -4,10 +4,10 @@
     http://api.highcharts.com/gantt.
 */
 
-var today = new Date(),
-    day = 1000 * 60 * 60 * 24,
-    each = Highcharts.each,
-    reduce = Highcharts.reduce,
+let today = new Date(),
+    isAddingTask = false;
+
+const day = 1000 * 60 * 60 * 24,
     btnShowDialog = document.getElementById('btnShowDialog'),
     btnRemoveTask = document.getElementById('btnRemoveSelected'),
     btnAddTask = document.getElementById('btnAddTask'),
@@ -16,8 +16,7 @@ var today = new Date(),
     inputName = document.getElementById('inputName'),
     selectDepartment = document.getElementById('selectDepartment'),
     selectDependency = document.getElementById('selectDependency'),
-    chkMilestone = document.getElementById('chkMilestone'),
-    isAddingTask = false;
+    chkMilestone = document.getElementById('chkMilestone');
 
 // Set to 00:00:00:000 today
 today.setUTCHours(0);
@@ -30,7 +29,7 @@ today = today.getTime();
 // Update disabled status of the remove button, depending on whether or not we
 // have any selected points.
 function updateRemoveButtonStatus() {
-    var chart = this.series.chart;
+    const chart = this.series.chart;
     // Run in a timeout to allow the select to update
     setTimeout(function () {
         btnRemoveTask.disabled = !chart.getSelectedPoints().length ||
@@ -40,11 +39,7 @@ function updateRemoveButtonStatus() {
 
 
 // Create the chart
-var chart = Highcharts.ganttChart('container', {
-
-    chart: {
-        spacingLeft: 1
-    },
+const chart = Highcharts.ganttChart('container', {
 
     title: {
         text: 'Interactive Gantt Chart'
@@ -57,7 +52,8 @@ var chart = Highcharts.ganttChart('container', {
     lang: {
         accessibility: {
             axis: {
-                xAxisDescriptionPlural: 'The chart has a two-part X axis showing time in both week numbers and days.'
+                xAxisDescriptionPlural: 'The chart has a two-part X axis ' +
+                    'showing time in both week numbers and days.'
             }
         }
     },
@@ -67,7 +63,8 @@ var chart = Highcharts.ganttChart('container', {
             descriptionFormat: '{#if milestone}' +
                 '{name}, milestone for {yCategory} at {x:%Y-%m-%d}.' +
                 '{else}' +
-                '{name}, assigned to {yCategory} from {x:%Y-%m-%d} to {x2:%Y-%m-%d}.' +
+                '{name}, assigned to {yCategory} from {x:%Y-%m-%d} to ' +
+                '{x2:%Y-%m-%d}.' +
                 '{/if}'
         }
     },
@@ -170,16 +167,14 @@ var chart = Highcharts.ganttChart('container', {
 /* Add button handlers for add/remove tasks */
 
 btnRemoveTask.onclick = function () {
-    var points = chart.getSelectedPoints();
-    each(points, function (point) {
-        point.remove();
-    });
+    const points = chart.getSelectedPoints();
+    points.forEach(point => point.remove());
 };
 
 btnShowDialog.onclick = function () {
     // Update dependency list
-    var depInnerHTML = '<option value=""></option>';
-    each(chart.series[0].points, function (point) {
+    let depInnerHTML = '<option value=""></option>';
+    chart.series[0].points.forEach(function (point) {
         depInnerHTML += '<option value="' + point.id + '">' + point.name +
             ' </option>';
     });
@@ -196,20 +191,21 @@ btnShowDialog.onclick = function () {
 
 btnAddTask.onclick = function () {
     // Get values from dialog
-    var series = chart.series[0],
+    const series = chart.series[0],
         name = inputName.value,
-        undef,
         dependency = chart.get(
             selectDependency.options[selectDependency.selectedIndex].value
         ),
         y = parseInt(
             selectDepartment.options[selectDepartment.selectedIndex].value,
             10
-        ),
-        maxEnd = reduce(series.points, function (acc, point) {
+        );
+    let undef,
+        maxEnd = series.points.reduce(function (acc, point) {
             return point.y === y && point.end ? Math.max(acc, point.end) : acc;
-        }, 0),
-        milestone = chkMilestone.checked || undef;
+        }, 0);
+
+    const milestone = chkMilestone.checked || undef;
 
     // Empty category
     if (maxEnd === 0) {

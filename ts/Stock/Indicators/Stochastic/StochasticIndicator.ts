@@ -14,6 +14,7 @@
  *
  * */
 
+import type { IndicatorLinkedSeriesLike } from '../IndicatorLike';
 import type IndicatorValuesObject from '../IndicatorValuesObject';
 import type LineSeries from '../../../Series/Line/LineSeries';
 import type {
@@ -128,9 +129,9 @@ class StochasticIndicator extends SMAIndicator {
      *
      * */
 
-    public data: Array<StochasticPoint> = void 0 as any;
-    public options: StochasticOptions = void 0 as any;
-    public points: Array<StochasticPoint> = void 0 as any;
+    public data!: Array<StochasticPoint>;
+    public options!: StochasticOptions;
+    public points!: Array<StochasticPoint>;
 
     /* *
      *
@@ -152,7 +153,7 @@ class StochasticIndicator extends SMAIndicator {
     }
 
     public getValues <TLinkedSeries extends LineSeries>(
-        series: TLinkedSeries,
+        series: TLinkedSeries&IndicatorLinkedSeriesLike,
         params: StochasticParamsOptions
     ): (IndicatorValuesObject<TLinkedSeries>|undefined) {
         const periodK: number = (params.periods as any)[0],
@@ -325,4 +326,4 @@ export default StochasticIndicator;
  * @apioption series.stochastic
  */
 
-''; // to include the above in the js output
+''; // To include the above in the js output

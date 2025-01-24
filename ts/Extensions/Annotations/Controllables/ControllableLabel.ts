@@ -33,6 +33,7 @@ import MockPoint from '../MockPoint.js';
 import U from '../../../Core/Utilities.js';
 const {
     extend,
+    getAlignFactor,
     isNumber,
     pick
 } = U;
@@ -54,14 +55,6 @@ interface ControllableAlignObject extends AlignObject {
     height?: number;
     width?: number;
 }
-
-/* *
- *
- *  Constants
- *
- * */
-
-const composedMembers: Array<unknown> = [];
 
 /* *
  *
@@ -195,35 +188,17 @@ class ControllableLabel extends Controllable {
         alignOptions: ControllableAlignObject,
         box: BBoxObject
     ): PositionObject {
-        const align = alignOptions.align,
-            vAlign = alignOptions.verticalAlign;
-
-        let x = (box.x || 0) + (alignOptions.x || 0),
-            y = (box.y || 0) + (alignOptions.y || 0),
-            alignFactor,
-            vAlignFactor;
-
-        if (align === 'right') {
-            alignFactor = 1;
-        } else if (align === 'center') {
-            alignFactor = 2;
-        }
-        if (alignFactor) {
-            x += (box.width - (alignOptions.width || 0)) / alignFactor;
-        }
-
-        if (vAlign === 'bottom') {
-            vAlignFactor = 1;
-        } else if (vAlign === 'middle') {
-            vAlignFactor = 2;
-        }
-        if (vAlignFactor) {
-            y += (box.height - (alignOptions.height || 0)) / vAlignFactor;
-        }
-
         return {
-            x: Math.round(x),
-            y: Math.round(y)
+            x: Math.round(
+                (box.x || 0) + (alignOptions.x || 0) +
+                (box.width - (alignOptions.width || 0)) *
+                getAlignFactor(alignOptions.align)
+            ),
+            y: Math.round(
+                (box.y || 0) + (alignOptions.y || 0) +
+                (box.height - (alignOptions.height || 0)) *
+                getAlignFactor(alignOptions.verticalAlign)
+            )
         };
     }
 
@@ -231,11 +206,8 @@ class ControllableLabel extends Controllable {
         SVGRendererClass: typeof SVGRenderer
     ): void {
 
-        if (U.pushUnique(composedMembers, SVGRendererClass)) {
-            const svgRendererProto = SVGRendererClass.prototype;
-
-            svgRendererProto.symbols.connector = symbolConnector;
-        }
+        const symbols = SVGRendererClass.prototype.symbols;
+        symbols.connector = symbolConnector;
 
     }
 
@@ -418,10 +390,6 @@ class ControllableLabel extends Controllable {
                 .shadow(options.shadow);
         }
 
-        if (options.className) {
-            this.graphic.addClass(options.className);
-        }
-
         this.graphic.labelrank = (options as any).labelrank;
 
         super.render();
@@ -440,11 +408,7 @@ class ControllableLabel extends Controllable {
 
         label.attr({
             text: text ?
-                format(
-                    String(text),
-                    point.getLabelConfig(),
-                    this.annotation.chart
-                ) :
+                format(String(text), point, this.annotation.chart) :
                 (options.formatter as any).call(point, this)
         });
 
@@ -476,6 +440,7 @@ class ControllableLabel extends Controllable {
      * options.
      */
     public anchor(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _point: AnnotationPointType
     ): ControlTarget.Anchor {
         const anchor = super.anchor.apply(this, arguments),
@@ -522,7 +487,8 @@ class ControllableLabel extends Controllable {
                     {
                         chart,
                         distance: pick(itemOptions.distance, 16),
-                        getPlayingField: tooltip.getPlayingField
+                        getPlayingField: tooltip.getPlayingField,
+                        pointer: tooltip.pointer
                     },
                     width,
                     height,

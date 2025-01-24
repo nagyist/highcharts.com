@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009-2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -43,7 +43,7 @@ export interface ChainModifierOptions extends DataModifierOptions {
     /**
      * Array of options of the chain modifiers.
      */
-    chain?: Array<DeepPartial<DataModifierTypeOptions>>;
+    chain?: Array<Partial<DataModifierTypeOptions>>;
 
     /**
      * Whether to revert the order before execution.

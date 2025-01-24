@@ -2,7 +2,7 @@
 
     // Load the dataset
     const data = await fetch(
-        'https://cdn.jsdelivr.net/gh/highcharts/highcharts@v10.3.3/samples/data/usdeur.json'
+        'https://www.highcharts.com/samples/data/usdeur.json'
     ).then(response => response.json());
 
     let detailChart;
@@ -10,7 +10,7 @@
     // create the detail chart
     function createDetail(masterChart) {
         // prepare the detail chart
-        var detailData = [],
+        const detailData = [],
             detailStart = data[0][0];
 
         masterChart.series[0].data.forEach(point => {
@@ -51,8 +51,8 @@
                 maxZoom: 0.1
             },
             tooltip: {
-                format: '<b>{series.name}</b><br/>{x:%A %B %e %Y}:<br/>' +
-                        '1 USD = {y:.2f} EUR',
+                format: '<b>{series.name}</b><br/>{x:%a, %b %e, %Y}:<br/>' +
+                    '1 USD = {y:.2f} EUR',
                 shared: true
             },
             legend: {
@@ -95,13 +95,15 @@
                 backgroundColor: null,
                 marginLeft: 50,
                 marginRight: 20,
-                zoomType: 'x',
+                zooming: {
+                    type: 'x'
+                },
                 events: {
 
                     // listen to the selection event on the master chart to
                     // update the extremes of the detail chart
                     selection: function (event) {
-                        var extremesObject = event.xAxis[0],
+                        const extremesObject = event.xAxis[0],
                             min = extremesObject.min,
                             max = extremesObject.max,
                             detailData = [],
@@ -216,10 +218,12 @@
         }); // return chart instance
     }
 
-    // make the container smaller and add a second container for the master chart
+    // make the container smaller and add a second container for the master
+    // chart
     const container = document.getElementById('container');
     container.style.position = 'relative';
-    container.innerHTML += '<div id="detail-container"></div><div id="master-container"></div>';
+    container.innerHTML += '<div id="detail-container"></div><div ' +
+        'id="master-container"></div>';
 
     // create master and in its callback, create the detail chart
     createMaster();

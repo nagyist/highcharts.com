@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009 - 2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -19,7 +19,10 @@
  *
  * */
 
+import type Globals from '../Globals';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type JSON from '../JSON';
+import type CSVConnectorOptions from '../../Data/Connectors/CSVConnectorOptions';
 
 import CSVConnector from '../../Data/Connectors/CSVConnector.js';
 import DataTableHelper from './DataTableHelper.js';
@@ -51,7 +54,7 @@ function fromJSON(
 /**
  * Validates the given class instance for JSON support.
  *
- * @param {AnyRecord} obj
+ * @param {Globals.AnyRecord} obj
  * Class instance or object to validate.
  *
  * @return {boolean}
@@ -59,7 +62,7 @@ function fromJSON(
  * false.
  */
 function jsonSupportFor(
-    obj: AnyRecord
+    obj: Globals.AnyRecord
 ): obj is CSVConnector {
     return obj instanceof CSVConnector;
 }
@@ -104,7 +107,7 @@ namespace CSVConnectorHelper {
         options: OptionsJSON;
     }
 
-    export type OptionsJSON = (JSON.Object&CSVConnector.Options);
+    export type OptionsJSON = (JSON.Object&CSVConnectorOptions);
 
 }
 

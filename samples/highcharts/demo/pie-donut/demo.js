@@ -1,4 +1,4 @@
-var colors = Highcharts.getOptions().colors,
+const colors = Highcharts.getOptions().colors,
     categories = [
         'Chrome',
         'Safari',
@@ -154,9 +154,10 @@ var colors = Highcharts.getOptions().colors,
     ],
     browserData = [],
     versionsData = [],
-    i,
+    dataLen = data.length;
+
+let i,
     j,
-    dataLen = data.length,
     drillDataLen,
     brightness;
 
@@ -174,11 +175,15 @@ for (i = 0; i < dataLen; i += 1) {
     // add version data
     drillDataLen = data[i].drilldown.data.length;
     for (j = 0; j < drillDataLen; j += 1) {
+        const name = data[i].drilldown.categories[j];
         brightness = 0.2 - (j / drillDataLen) / 5;
         versionsData.push({
-            name: data[i].drilldown.categories[j],
+            name,
             y: data[i].drilldown.data[j],
-            color: Highcharts.color(data[i].color).brighten(brightness).get()
+            color: Highcharts.color(data[i].color).brighten(brightness).get(),
+            custom: {
+                version: name.split(' ')[1] || name.split(' ')[0]
+            }
         });
     }
 }
@@ -189,12 +194,10 @@ Highcharts.chart('container', {
         type: 'pie'
     },
     title: {
-        text: 'Browser market share, January, 2022',
-        align: 'left'
+        text: 'Browser market share, January, 2022'
     },
     subtitle: {
-        text: 'Source: <a href="http://statcounter.com" target="_blank">statcounter.com</a>',
-        align: 'left'
+        text: 'Source: <a href="http://statcounter.com" target="_blank">statcounter.com</a>'
     },
     plotOptions: {
         pie: {
@@ -208,10 +211,10 @@ Highcharts.chart('container', {
     series: [{
         name: 'Browsers',
         data: browserData,
-        size: '60%',
+        size: '45%',
         dataLabels: {
             color: '#ffffff',
-            distance: -30
+            distance: '-50%'
         }
     }, {
         name: 'Versions',
@@ -219,7 +222,8 @@ Highcharts.chart('container', {
         size: '80%',
         innerSize: '60%',
         dataLabels: {
-            format: '<b>{point.name}:</b> <span style="opacity: 0.5">{y}%</span>',
+            format: '<b>{point.name}:</b> <span style="opacity: 0.5">' +
+                '{y}%</span>',
             filter: {
                 property: 'y',
                 operator: '>',
@@ -241,7 +245,13 @@ Highcharts.chart('container', {
                 }, {
                     id: 'versions',
                     dataLabels: {
-                        enabled: false
+                        distance: 10,
+                        format: '{point.custom.version}',
+                        filter: {
+                            property: 'percentage',
+                            operator: '>',
+                            value: 2
+                        }
                     }
                 }]
             }

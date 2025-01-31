@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009-2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -8,6 +8,7 @@
  *
  *  Authors:
  *  - Sophie Bremer
+ *  - Dawid Dragula
  *
  * */
 
@@ -26,6 +27,7 @@ import type {
     DataModifierType,
     DataModifierTypeOptions
 } from './DataModifierType';
+import type Types from '../../Shared/Types';
 
 import DataModifier from './DataModifier.js';
 import DataTable from '../DataTable.js';
@@ -43,7 +45,6 @@ const {
 /**
  * Modifies a table with the help of modifiers in an ordered chain.
  *
- * @private
  */
 class ChainModifier extends DataModifier {
 
@@ -69,14 +70,14 @@ class ChainModifier extends DataModifier {
     /**
      * Constructs an instance of the modifier chain.
      *
-     * @param {DeepPartial<ChainModifier.Options>} [options]
+     * @param {Partial<ChainModifier.Options>} [options]
      * Options to configure the modifier chain.
      *
      * @param {...DataModifier} [chain]
      * Ordered chain of modifiers.
      */
     public constructor(
-        options?: DeepPartial<ChainModifierOptions>,
+        options?: Partial<ChainModifierOptions>,
         ...chain: Array<DataModifier>
     ) {
         super();
@@ -89,7 +90,7 @@ class ChainModifier extends DataModifier {
         for (
             let i = 0,
                 iEnd = optionsChain.length,
-                modifierOptions: DeepPartial<DataModifierTypeOptions>,
+                modifierOptions: Partial<DataModifierTypeOptions>,
                 ModifierClass: (DataModifierType|undefined);
             i < iEnd;
             ++i
@@ -103,7 +104,9 @@ class ChainModifier extends DataModifier {
             ModifierClass = DataModifier.types[modifierOptions.type];
 
             if (ModifierClass) {
-                chain.unshift(new ModifierClass(modifierOptions as AnyRecord));
+                chain.push(new ModifierClass(
+                    modifierOptions as Types.AnyRecord
+                ));
             }
         }
     }
@@ -192,7 +195,7 @@ class ChainModifier extends DataModifier {
      * @return {Promise<Highcharts.DataTable>}
      * Table with `modified` property as a reference.
      */
-    public modify<T extends DataTable>(
+    public async modify<T extends DataTable>(
         table: T,
         eventDetail?: DataEvent.Detail
     ): Promise<T> {
@@ -202,30 +205,28 @@ class ChainModifier extends DataModifier {
                 this.chain.slice()
         );
 
-        let promiseChain: Promise<T> = Promise.resolve(table);
-
-        for (let i = 0, iEnd = modifiers.length; i < iEnd; ++i) {
-            const modifier = modifiers[i];
-            promiseChain = promiseChain.then((chainTable): Promise<T> =>
-                modifier.modify(chainTable.modified as T, eventDetail)
-            );
+        if (table.modified === table) {
+            table.modified = table.clone(false, eventDetail);
         }
 
-        promiseChain = promiseChain.then((chainTable): T => {
-            table.modified = chainTable.modified;
-            return table;
-        });
+        let modified: DataTable = table;
+        for (let i = 0, iEnd = modifiers.length; i < iEnd; ++i) {
+            try {
+                await modifiers[i].modify(modified, eventDetail);
+            } catch (error) {
+                this.emit<DataModifierEvent>({
+                    type: 'error',
+                    detail: eventDetail,
+                    table
+                });
+                throw error;
+            }
 
-        promiseChain = promiseChain['catch']((error): Promise<T> => {
-            this.emit<DataModifierEvent>({
-                type: 'error',
-                detail: eventDetail,
-                table
-            });
-            throw error;
-        });
+            modified = modified.modified;
+        }
 
-        return promiseChain;
+        table.modified = modified;
+        return table;
     }
 
     /**
@@ -488,7 +489,6 @@ class ChainModifier extends DataModifier {
 
 /**
  * Additionally provided types for modifier events and options.
- * @private
  */
 namespace ChainModifier {
 

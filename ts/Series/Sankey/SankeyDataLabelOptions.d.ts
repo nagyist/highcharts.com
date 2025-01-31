@@ -2,7 +2,7 @@
  *
  *  Sankey diagram module
  *
- *  (c) 2010-2021 Torstein Honsi
+ *  (c) 2010-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -20,6 +20,7 @@ import type DataLabelOptions from '../../Core/Series/DataLabelOptions';
 import type Point from '../../Core/Series/Point';
 import type SankeyPoint from './SankeyPoint';
 import type { DataLabelTextPathOptions } from '../../Core/Series/DataLabelOptions';
+
 /* *
  *
  *  Declarations
@@ -28,10 +29,7 @@ import type { DataLabelTextPathOptions } from '../../Core/Series/DataLabelOption
 
 export interface SankeyDataLabelFormatterCallback {
     (
-        this: (
-            SankeyDataLabelFormatterContext|
-            Point.PointLabelObject
-        )
+        this: (SankeyPoint|Point)
     ): (string|undefined);
 }
 
@@ -44,5 +42,11 @@ export interface SankeyDataLabelOptions extends DataLabelOptions {
     nodeFormatter?: SankeyDataLabelFormatterCallback;
     linkTextPath?: DataLabelTextPathOptions;
 }
+
+/* *
+ *
+ *  Default Export
+ *
+ * */
 
 export default SankeyDataLabelOptions;

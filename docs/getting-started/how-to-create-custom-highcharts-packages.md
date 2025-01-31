@@ -3,7 +3,7 @@ Creating custom Highcharts packages
 
 Thanks to ES modules you can create your own custom Highcharts package.
 A benefit of using a custom file can be optimization of browser load speed due
-to lower filesize and less files to request.
+to lower file size and less files to request.
 
 Follow the steps below to get started.
 
@@ -17,7 +17,7 @@ repository and click on "Code" and select "Download ZIP". Once the zip file is
 downloaded, unpack it to a desired location.
 
 The following steps require Node.js, which you can download and install from the
-[Node.js website](https://nodejs.org/en/). Highcharts supports the TSL variant.
+[Node.js website](https://nodejs.org/en/). Highcharts supports the LTS variant.
 
 When Node.js is installed, open you command line, shell, or terminal, and go to
 the unpacked folder `highcharts-master`. There you have to run `npm install` to
@@ -34,18 +34,26 @@ basic line chart. To achieve this we will need a setup that lists all the needed
 ES modules like this:
 
 ```ts
+/**
+ * @license Highcharts JS v@product.version@ (@product.date@)
+ * @module highcharts/highcharts
+ *
+ * (c) 2009-2024 Highcharts AS
+ *
+ * License: www.highcharts.com/license
+ */
 'use strict';
 import Highcharts from '../Core/Globals.js';
 import SVGRenderer from '../Core/Renderer/SVG/SVGRenderer.js';
 import Chart from '../Core/Chart/Chart.js';
 import LineSeries from '../Series/Line/LineSeries.js';
-const exports: AnyRecord = Highcharts;
+const exports: Record<string, any> = Highcharts;
 exports.Renderer = SVGRenderer;
 exports.SVGRenderer = SVGRenderer;
 exports.Chart = Chart;
 exports.chart = Chart.chart;
 exports.LineSeries = LineSeries;
-export default exports;
+export default Highcharts;
 ```
 
 Modify the setup according to your needs, then proceed with the next step.
@@ -74,6 +82,10 @@ free to rename the folder for your needs. This folder might have a large size,
 but ESM will pick only necessary files from it for your project. A bundler like
 `parcel` or `webpack` can help in the final stage of your project to optimize
 the loading time further.
+
+If you like to have declarations in addition to the new package file
+`code/custom.src.js`, run `npx gulp jsdoc-dts --custom`.
+
 
 
 Use your custom package file

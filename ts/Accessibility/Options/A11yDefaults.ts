@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009-2021 Øystein Moseng
+ *  (c) 2009-2024 Øystein Moseng
  *
  *  Default options for accessibility.
  *
@@ -298,6 +298,8 @@ const Options: DeepPartial<A11yOptions> = {
             /**
              * When a series contains more points than this, we no longer expose
              * information about individual points to screen readers.
+             * Note that the keyboard navigation remains functional, but points
+             * won't have accessible descriptions unless handled separately.
              *
              * Set to `false` to disable.
              *
@@ -517,12 +519,23 @@ const Options: DeepPartial<A11yOptions> = {
         /**
          * Theme to apply to the chart when Windows High Contrast Mode is
          * detected. By default, a high contrast theme matching the high
-         * contrast system system colors is used.
+         * contrast system colors is used.
          *
          * @type      {*}
          * @since     7.1.3
          * @apioption accessibility.highContrastTheme
          */
+
+        /**
+         * Controls how [highContrastTheme](#accessibility.highContrastTheme)
+         * is applied.
+         *
+         * The default option is `auto`, which applies the high contrast theme
+         * the user's system has a high contrast theme active.
+         *
+         * @since 11.4.0
+         */
+        highContrastMode: 'auto',
 
         /**
          * A text description of the chart.
@@ -638,8 +651,8 @@ const Options: DeepPartial<A11yOptions> = {
             /**
              * Order of tab navigation in the chart. Determines which elements
              * are tabbed to first. Available elements are: `series`, `zoom`,
-             * `rangeSelector`, `chartMenu`, `legend` and `container`. In
-             * addition, any custom components can be added here. Adding
+             * `rangeSelector`, `navigator`, `chartMenu`, `legend` and `container`.
+             * In addition, any custom components can be added here. Adding
              * `container` first in order will make the keyboard focus stop on
              * the chart container first, requiring the user to tab again to
              * enter the chart.
@@ -647,7 +660,10 @@ const Options: DeepPartial<A11yOptions> = {
              * @type  {Array<string>}
              * @since 7.1.0
              */
-            order: ['series', 'zoom', 'rangeSelector', 'legend', 'chartMenu'],
+            order: [
+                'series', 'zoom', 'rangeSelector',
+                'navigator', 'legend', 'chartMenu'
+            ],
 
             /**
              * Whether or not to wrap around when reaching the end of arrow-key
@@ -1005,8 +1021,28 @@ const Options: DeepPartial<A11yOptions> = {
              */
             enabled: true
         }
-    }
+    },
 
+    /**
+     * @optionparent navigator
+     */
+    navigator: {
+        /**
+         * Accessibility options for the navigator. Requires the
+         * Accessibility module.
+         *
+         * @since 11.2.0
+         * @requires modules/accessibility
+         */
+        accessibility: {
+            /**
+             * Enable accessibility support for the navigator.
+             *
+             * @since 11.2.0
+             */
+            enabled: true
+        }
+    }
 };
 
 export default Options;

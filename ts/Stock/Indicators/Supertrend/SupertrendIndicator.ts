@@ -15,6 +15,7 @@
  * */
 
 import type ColorType from '../../../Core/Color/ColorType';
+import type { IndicatorLinkedSeriesLike } from '../IndicatorLike';
 import type IndicatorValuesObject from '../IndicatorValuesObject';
 import type LineSeries from '../../../Series/Line/LineSeries';
 import type {
@@ -36,11 +37,11 @@ const {
     sma: SMAIndicator
 } = SeriesRegistry.seriesTypes;
 import U from '../../../Core/Utilities.js';
-import StockChart from '../../../Core/Chart/StockChart.js';
 const {
     addEvent,
     correctFloat,
     isArray,
+    isNumber,
     extend,
     merge,
     objectEach
@@ -58,13 +59,12 @@ const {
  */
 function createPointObj(
     mainSeries: SupertrendLinkedParentObject,
-    index: number,
-    close: number
+    index: number
 ): SupertrendLinkedParentPointObject {
     return {
-        index: index,
-        close: mainSeries.yData[index][close],
-        x: mainSeries.xData[index]
+        index,
+        close: mainSeries.getColumn('close')[index],
+        x: mainSeries.getColumn('x')[index]
     } as any;
 }
 
@@ -112,12 +112,12 @@ class SupertrendIndicator extends SMAIndicator {
      */
     public static defaultOptions: SupertrendOptions = merge(SMAIndicator.defaultOptions, {
         /**
-         * Paramters used in calculation of Supertrend indicator series points.
+         * Parameters used in calculation of Supertrend indicator series points.
          *
          * @excluding index
          */
         params: {
-            index: void 0, // unchangeable index, do not inherit (#15362)
+            index: void 0, // Unchangeable index, do not inherit (#15362)
             /**
              * Multiplier for Supertrend Indicator.
              */
@@ -191,13 +191,13 @@ class SupertrendIndicator extends SMAIndicator {
      *
      * */
 
-    public data: Array<SupertrendPoint> = void 0 as any;
+    public data!: Array<SupertrendPoint>;
 
-    public linkedParent: SupertrendLinkedParentObject = void 0 as any;
+    public linkedParent!: SupertrendLinkedParentObject;
 
-    public options: SupertrendOptions = void 0 as any;
+    public options!: SupertrendOptions;
 
-    public points: Array<SupertrendPoint> = void 0 as any;
+    public points!: Array<SupertrendPoint>;
 
     /* *
      *
@@ -212,7 +212,7 @@ class SupertrendIndicator extends SMAIndicator {
 
         // Only after series are linked add some additional logic/properties.
         const unbinder = addEvent(
-            StockChart,
+            this.chart.constructor,
             'afterLinkSeries',
             (): void => {
                 // Protection for a case where the indicator is being updated,
@@ -242,6 +242,7 @@ class SupertrendIndicator extends SMAIndicator {
 
             // Series that indicator is linked to
             mainSeries = indicator.linkedParent,
+            mainXData = mainSeries.getColumn('x'),
             mainLinePoints: Array<(SupertrendLinkedParentPointObject)> =
                 (mainSeries ? mainSeries.points : []),
             indicPoints: Array<SupertrendPoint> = indicator.points,
@@ -258,7 +259,7 @@ class SupertrendIndicator extends SMAIndicator {
             },
 
             // Sorted supertrend points array
-            groupedPoitns: SupertrendGroupedPointsObject = {
+            groupedPoints: SupertrendGroupedPointsObject = {
                 top: [], // Rising trend line points
                 bottom: [], // Falling trend line points
                 intersect: [] // Change trend line points
@@ -287,8 +288,7 @@ class SupertrendIndicator extends SMAIndicator {
                     }
                 },
                 intersect: indicOptions.changeTrendLine
-            },
-            close = 3;
+            };
 
         let // Supertrend line point
             point: SupertrendPoint,
@@ -308,7 +308,7 @@ class SupertrendIndicator extends SMAIndicator {
             // Used when particular point color is set
             pointColor: ColorType,
 
-            // Temporary points that fill groupedPoitns array
+            // Temporary points that fill groupedPoints array
             newPoint: SupertrendPoint,
             newNextPoint: SupertrendPoint,
 
@@ -334,10 +334,11 @@ class SupertrendIndicator extends SMAIndicator {
             // but supertrend has additional one
             if (
                 !nextMainPoint &&
-                mainPoint && mainSeries.yData[mainPoint.index - 1]
+                mainPoint &&
+                isNumber(mainXData[mainPoint.index - 1])
             ) {
                 nextMainPoint = createPointObj(
-                    mainSeries, mainPoint.index - 1, close
+                    mainSeries, mainPoint.index - 1
                 );
             }
 
@@ -345,27 +346,30 @@ class SupertrendIndicator extends SMAIndicator {
             // but supertrend has additional one (and points are shifted)
             if (
                 !prevPrevMainPoint &&
-                prevMainPoint && mainSeries.yData[prevMainPoint.index + 1]
+                prevMainPoint &&
+                isNumber(mainXData[prevMainPoint.index + 1])
             ) {
                 prevPrevMainPoint = createPointObj(
-                    mainSeries, prevMainPoint.index + 1, close
+                    mainSeries, prevMainPoint.index + 1
                 );
             }
 
             // When points are shifted (right or left plot area edge)
             if (
                 !mainPoint &&
-                nextMainPoint && mainSeries.yData[nextMainPoint.index + 1]
+                nextMainPoint &&
+                isNumber(mainXData[nextMainPoint.index + 1])
             ) {
                 mainPoint = createPointObj(
-                    mainSeries, nextMainPoint.index + 1, close
+                    mainSeries, nextMainPoint.index + 1
                 );
             } else if (
                 !mainPoint &&
-                prevMainPoint && mainSeries.yData[prevMainPoint.index - 1]
+                prevMainPoint &&
+                isNumber(mainXData[prevMainPoint.index - 1])
             ) {
                 mainPoint = createPointObj(
-                    mainSeries, prevMainPoint.index - 1, close
+                    mainSeries, prevMainPoint.index - 1
                 );
             }
 
@@ -383,8 +387,10 @@ class SupertrendIndicator extends SMAIndicator {
                 } else if (point.x === nextMainPoint.x) {
                     mainPoint = nextMainPoint;
                     nextMainPoint = ({
-                        close: mainSeries.yData[mainPoint.index - 1][close],
-                        x: mainSeries.xData[mainPoint.index - 1]
+                        close: mainSeries.getColumn('close')[
+                            mainPoint.index - 1
+                        ],
+                        x: mainXData[mainPoint.index - 1]
                     } as any);
                 } else if (
                     prevPrevMainPoint && point.x === prevPrevMainPoint.x
@@ -411,7 +417,7 @@ class SupertrendIndicator extends SMAIndicator {
                         pointColor || indicOptions.fallingTrendColor ||
                         indicOptions.color
                     );
-                    groupedPoitns.top.push(newPoint);
+                    groupedPoints.top.push(newPoint);
 
                 } else if (
                     point.y < mainPoint.close &&
@@ -421,14 +427,14 @@ class SupertrendIndicator extends SMAIndicator {
                         pointColor || indicOptions.risingTrendColor ||
                         indicOptions.color
                     );
-                    groupedPoitns.bottom.push(newPoint);
+                    groupedPoints.bottom.push(newPoint);
 
                 } else {
-                    groupedPoitns.intersect.push(newPoint);
-                    groupedPoitns.intersect.push(newNextPoint);
+                    groupedPoints.intersect.push(newPoint);
+                    groupedPoints.intersect.push(newNextPoint);
 
                     // Additional null point to make a gap in line
-                    groupedPoitns.intersect.push(merge(newNextPoint, {
+                    groupedPoints.intersect.push(merge(newNextPoint, {
                         isNull: true
                     }));
 
@@ -444,8 +450,8 @@ class SupertrendIndicator extends SMAIndicator {
                             pointColor || indicOptions.risingTrendColor ||
                             indicOptions.color
                         );
-                        groupedPoitns.top.push(newPoint);
-                        groupedPoitns.top.push(merge(newNextPoint, {
+                        groupedPoints.top.push(newPoint);
+                        groupedPoints.top.push(merge(newNextPoint, {
                             isNull: true
                         }));
                     } else if (
@@ -460,8 +466,8 @@ class SupertrendIndicator extends SMAIndicator {
                             pointColor || indicOptions.fallingTrendColor ||
                             indicOptions.color
                         );
-                        groupedPoitns.bottom.push(newPoint);
-                        groupedPoitns.bottom.push(merge(newNextPoint, {
+                        groupedPoints.bottom.push(newPoint);
+                        groupedPoints.bottom.push(merge(newNextPoint, {
                             isNull: true
                         }));
                     }
@@ -472,19 +478,20 @@ class SupertrendIndicator extends SMAIndicator {
                         pointColor || indicOptions.fallingTrendColor ||
                         indicOptions.color
                     );
-                    groupedPoitns.top.push(newPoint);
+                    groupedPoints.top.push(newPoint);
                 } else {
                     point.color = (
                         pointColor || indicOptions.risingTrendColor ||
                         indicOptions.color
                     );
-                    groupedPoitns.bottom.push(newPoint);
+                    groupedPoints.bottom.push(newPoint);
                 }
             }
         }
 
         // Generate lines:
-        objectEach(groupedPoitns,
+        objectEach(
+            groupedPoints,
             function (values, lineName): void {
                 indicator.points = values;
                 indicator.options = merge(
@@ -547,7 +554,7 @@ class SupertrendIndicator extends SMAIndicator {
     //     ) THAN Current FINAL LOWERBAND
 
     public getValues<TLinkedSeries extends LineSeries>(
-        series: TLinkedSeries,
+        series: TLinkedSeries&IndicatorLinkedSeriesLike,
         params: SupertrendParamsOptions
     ): (IndicatorValuesObject<TLinkedSeries>|undefined) {
         const period: number = (params.period as any),
@@ -571,7 +578,7 @@ class SupertrendIndicator extends SMAIndicator {
             supertrend: (number|undefined),
             prevFinalUp: number,
             prevFinalDown: number,
-            prevST: (number|undefined), // previous Supertrend
+            prevST: (number|undefined), // Previous Supertrend
             prevY: Array<number>,
             y: Array<number>,
             i: number;
@@ -623,7 +630,8 @@ class SupertrendIndicator extends SMAIndicator {
                 finalDown[i] = prevFinalDown;
             }
 
-            if (prevST === prevFinalUp && y[close] < finalUp[i] ||
+            if (
+                prevST === prevFinalUp && y[close] < finalUp[i] ||
                 prevST === prevFinalDown && y[close] < finalDown[i]
             ) {
                 supertrend = finalUp[i];
@@ -709,4 +717,4 @@ export default SupertrendIndicator;
  * @apioption series.supertrend
  */
 
-''; // to include the above in the js output
+''; // To include the above in the js output

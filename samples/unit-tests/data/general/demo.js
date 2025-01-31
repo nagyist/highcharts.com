@@ -23,7 +23,8 @@ QUnit.test(
                     assert.strictEqual(
                         sample,
                         previousSample,
-                        'Parsed dates should be the same. (Index: ' + index + ')'
+                        'Parsed dates should be the same. (Index: ' +
+                            index + ')'
                     );
                 }
                 previousSample = sample;
@@ -162,7 +163,8 @@ QUnit.test('Combination charts and column mapping', function (assert) {
             return s.type;
         }),
         ['column', 'errorbar', 'line', 'errorbar'],
-        'Alternating series types should eat different numbers of columns (#8438)'
+        'Alternating series types should eat different numbers of columns ' +
+        '(#8438)'
     );
 
     chart = Highcharts.chart('container', {
@@ -240,6 +242,20 @@ QUnit.test('Combination charts and column mapping', function (assert) {
         `Name should be mapped correctly from CSV for packed bubble series,
         which is non-cartesian (#19143).`
     );
+
+    chart = Highcharts.chart('container', {
+        data: {
+            csv: 'code;value\n01007;58\n01003;10\n01041;32\n01085;84\n01133;12',
+            columnTypes: ['string', 'number']
+        }
+    });
+
+    assert.strictEqual(
+        chart.xAxis[0].type,
+        'category',
+        `After setting first column as string in data.columnTypes, x-axis should
+        be configured as category axis (#16920).`
+    );
 });
 
 QUnit.test('Data config on updates and setOptions', function (assert) {
@@ -283,7 +299,8 @@ QUnit.test('Data config on updates and setOptions', function (assert) {
     assert.strictEqual(
         chart.series.length,
         oldDataLength,
-        'Switching back switchRowsAndColumns should restore number of series (#11095).'
+        'Switching back switchRowsAndColumns should restore number of series ' +
+        '(#11095).'
     );
 
     assert.strictEqual(
@@ -361,8 +378,7 @@ QUnit.test(
 QUnit.test('Updating with firstRowAsNames', function (assert) {
     const chart = Highcharts.chart('container', {
             data: {
-                columns: [['A', 1, 2, 3, 4, 5, 6], ['B', 2, 4, 8, 3, 6, 6]],
-                firstRowAsNames: true
+                columns: [['A', 1, 2, 3, 4, 5, 6], ['B', 2, 4, 8, 3, 6, 6]]
             }
         }),
         numPoints = chart.series[0].points.length;
@@ -384,8 +400,7 @@ QUnit.test('Updating with firstRowAsNames', function (assert) {
 QUnit.test('Update column names', function (assert) {
     const chart = Highcharts.chart('container', {
         data: {
-            columns: [['A', 1, 2, 3, 4, 5, 6], ['B', 2, 4, 8, 3, 6, 6]],
-            firstRowAsNames: true
+            columns: [['A', 1, 2, 3, 4, 5, 6], ['B', 2, 4, 8, 3, 6, 6]]
         }
     });
 
@@ -413,8 +428,7 @@ QUnit.test('Updating with firstRowAsNames and dataGrouping', function (assert) {
             }
         },
         data: {
-            columns: [[0, 1, 2, 3, 4], [0, 1, 2, 3, 4]],
-            firstRowAsNames: true
+            columns: [[0, 1, 2, 3, 4], [0, 1, 2, 3, 4]]
         }
     });
 
@@ -427,6 +441,7 @@ QUnit.test('Updating with firstRowAsNames and dataGrouping', function (assert) {
     assert.strictEqual(
         chart.options.data.dataRefreshRate,
         90,
-        'Should be able to update data options despite using columns and having data grouping options.'
+        'Should be able to update data options despite using columns and ' +
+        'having data grouping options.'
     );
 });

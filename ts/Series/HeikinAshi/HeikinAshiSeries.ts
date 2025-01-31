@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2021 Torstein Honsi
+ *  (c) 2010-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -20,6 +20,8 @@ import type Axis from '../../Core/Axis/Axis';
 import type HeikinAshiSeriesOptions from './HeikinAshiSeriesOptions';
 import type Series from '../../Core/Series/Series';
 
+import H from '../../Core/Globals.js';
+const { composed } = H;
 import HeikinAshiPoint from './HeikinAshiPoint.js';
 import HeikinAshiSeriesDefaults from './HeikinAshiSeriesDefaults.js';
 import SeriesRegistry from '../../Core/Series/SeriesRegistry.js';
@@ -29,16 +31,9 @@ const {
 import U from '../../Core/Utilities.js';
 const {
     addEvent,
-    merge
+    merge,
+    pushUnique
 } = U;
-
-/* *
- *
- *  Constants
- *
- * */
-
-const composedMembers: Array<unknown> = [];
 
 /* *
  *
@@ -78,9 +73,6 @@ function onHeikinAshiSeriesAfterTranslate(
         heikiashiData = series.heikiashiData,
         cropStart = series.cropStart || 0;
 
-    // Reset the proccesed data.
-    series.processedYData.length = 0;
-
     // Modify points.
     for (let i = 0; i < points.length; i++) {
         const point = points[i],
@@ -90,11 +82,8 @@ function onHeikinAshiSeriesAfterTranslate(
         point.high = heikiashiDataPoint[1];
         point.low = heikiashiDataPoint[2];
         point.close = heikiashiDataPoint[3];
-
-        series.processedYData.push(
-            [point.open, point.high, point.low, point.close]
-        );
     }
+
 }
 
 /**
@@ -144,16 +133,13 @@ class HeikinAshiSeries extends CandlestickSeries {
 
     public static compose(
         SeriesClass: typeof Series,
-        AxisClass: typeof Axis,
-        ..._args: Array<never>
+        AxisClass: typeof Axis
     ): void {
         CandlestickSeries.compose(SeriesClass);
 
-        if (U.pushUnique(composedMembers, AxisClass)) {
+        if (pushUnique(composed, 'HeikinAshi')) {
             addEvent(AxisClass, 'postProcessData', onAxisPostProcessData);
-        }
 
-        if (U.pushUnique(composedMembers, HeikinAshiSeries)) {
             addEvent(
                 HeikinAshiSeries,
                 'afterTranslate',
@@ -174,17 +160,17 @@ class HeikinAshiSeries extends CandlestickSeries {
      *
      * */
 
-    public data: Array<HeikinAshiPoint> = void 0 as any;
+    public data!: Array<HeikinAshiPoint>;
 
     public heikiashiData: Array<Array<number>> = [];
 
-    public options: HeikinAshiSeriesOptions = void 0 as any;
+    public options!: HeikinAshiSeriesOptions;
 
-    public points: Array<HeikinAshiPoint> = void 0 as any;
+    public points!: Array<HeikinAshiPoint>;
 
-    public yData: Array<Array<number>> = void 0 as any;
+    public yData!: Array<Array<number>>;
 
-    public processedYData: Array<Array<(number|null)>> = void 0 as any;
+    public processedYData!: Array<Array<(number|null)>>;
 
     /* *
      *
@@ -198,23 +184,23 @@ class HeikinAshiSeries extends CandlestickSeries {
      */
     public getHeikinashiData(): void {
         const series = this,
-            processedYData = series.allGroupedData || series.yData,
+            table = series.allGroupedTable || series.dataTable,
+            dataLength = table.rowCount,
             heikiashiData = series.heikiashiData;
 
-        if (!heikiashiData.length && processedYData && processedYData.length) {
-            // Cast to `any` in order to avoid checks before calculation.
-            // Adding null doesn't change anything.
-            const firstPoint: any = processedYData[0];
+        if (!heikiashiData.length && dataLength) {
 
             // Modify the first point.
-            this.modifyFirstPointValue(firstPoint);
+            this.modifyFirstPointValue(
+                table.getRow(0, this.pointArrayMap) as Array<number>
+            );
 
             // Modify other points.
-            for (let i = 1; i < processedYData.length; i++) {
-                const dataPoint: any = processedYData[i],
-                    previousDataPoint: any = heikiashiData[i - 1];
-
-                this.modifyDataPoint(dataPoint, previousDataPoint);
+            for (let i = 1; i < dataLength; i++) {
+                this.modifyDataPoint(
+                    table.getRow(i, this.pointArrayMap) as Array<number>,
+                    heikiashiData[i - 1]
+                );
             }
         }
         series.heikiashiData = heikiashiData;

@@ -14,6 +14,7 @@
  *
  * */
 
+import type { IndicatorLinkedSeriesLike } from '../IndicatorLike';
 import type IndicatorValuesObject from '../IndicatorValuesObject';
 import type LinePoint from '../../../Series/Line/LinePoint';
 import type LineSeries from '../../../Series/Line/LineSeries';
@@ -71,7 +72,7 @@ class PivotPointsIndicator extends SMAIndicator {
      * @since        6.0.0
      * @product      highstock
      * @requires     stock/indicators/indicators
-     * @requires     stock/indicators/pivotpoints
+     * @requires     stock/indicators/pivot-points
      * @optionparent plotOptions.pivotpoints
      */
     public static defaultOptions: PivotPointsOptions = merge(SMAIndicator.defaultOptions, {
@@ -79,10 +80,10 @@ class PivotPointsIndicator extends SMAIndicator {
          * @excluding index
          */
         params: {
-            index: void 0, // unchangeable index, do not inherit (#15362)
+            index: void 0, // Unchangeable index, do not inherit (#15362)
             period: 28,
             /**
-             * Algorithm used to calculate ressistance and support lines based
+             * Algorithm used to calculate resistance and support lines based
              * on pivot points. Implemented algorithms: `'standard'`,
              * `'fibonacci'` and `'camarilla'`
              */
@@ -107,11 +108,11 @@ class PivotPointsIndicator extends SMAIndicator {
      *
      * */
 
-    public data: Array<PivotPointsPoint> = void 0 as any;
-    public options: PivotPointsOptions = void 0 as any;
-    public points: Array<PivotPointsPoint> = void 0 as any;
-    public endPoint: number = void 0 as any;
-    public plotEndPoint: number = void 0 as any;
+    public data!: Array<PivotPointsPoint>;
+    public options!: PivotPointsOptions;
+    public points!: Array<PivotPointsPoint>;
+    public endPoint!: number;
+    public plotEndPoint!: number;
 
     /* *
      *
@@ -221,7 +222,7 @@ class PivotPointsIndicator extends SMAIndicator {
         if ((indicator.options as any).dataLabels.enabled) {
             pointsLength = indicator.points.length;
 
-            // For every Ressitance/Support group we need to render labels.
+            // For every Resistance/Support group we need to render labels.
             // Add one more item, which will just store dataLabels from
             // previous iteration
             pointMapping.concat([false]).forEach(
@@ -272,7 +273,7 @@ class PivotPointsIndicator extends SMAIndicator {
 
     public getValues<TLinkedSeries extends LineSeries>(
         this: PivotPointsIndicator,
-        series: TLinkedSeries,
+        series: TLinkedSeries&IndicatorLinkedSeriesLike,
         params: PivotPointsParamsOptions
     ): (IndicatorValuesObject<TLinkedSeries>|undefined) {
         const period: number = (params.period as any),
@@ -464,8 +465,8 @@ export default PivotPointsIndicator;
  * @product   highstock
  * @excluding dataParser, dataURL
  * @requires  stock/indicators/indicators
- * @requires  stock/indicators/pivotpoints
+ * @requires  stock/indicators/pivot-points
  * @apioption series.pivotpoints
  */
 
-''; // to include the above in the js output'
+''; // To include the above in the js output'

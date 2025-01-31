@@ -1,4 +1,4 @@
-var today = new Date(),
+const today = new Date(),
     day = 1000 * 60 * 60 * 24;
 
 // Set to 00:00:00:000 today
@@ -18,7 +18,7 @@ Highcharts.chart('container', {
         type: 'datetime',
         tickInterval: day,
         labels: {
-            format: '{value:%a}'
+            format: '{ucfirst (value:%a)}'
         },
         min: today.getTime() - (3 * day),
         max: today.getTime() + (3 * day)

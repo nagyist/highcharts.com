@@ -274,7 +274,7 @@ QUnit.test('Auto IDs and no duplicate elements', function (assert) {
     );
 
     var ids = [];
-    Highcharts.each(patterns, function (pattern) {
+    for (const pattern of patterns) {
         var id = pattern.getAttribute('id');
         if (ids.indexOf(id) > -1) {
             assert.ok(
@@ -283,7 +283,7 @@ QUnit.test('Auto IDs and no duplicate elements', function (assert) {
             );
         }
         ids.push(id);
-    });
+    }
 
     assert.strictEqual(
         customPattern.getAttribute('width'),
@@ -299,7 +299,47 @@ QUnit.test('Auto IDs and no duplicate elements', function (assert) {
 });
 
 QUnit.test('Images (dummy images, not loaded)', function (assert) {
-    var chart = Highcharts.mapChart('container', {
+    const data = [
+            [
+                'no',
+                1,
+                {
+                    pattern: {
+                        image: 'base/test/test1x1b.png'
+                    }
+                }
+            ],
+            [
+                'dk',
+                1,
+                {
+                    pattern: {
+                        image: 'base/test/test1x1b.png'
+                    }
+                }
+            ],
+            [
+                'se',
+                1,
+                {
+                    pattern: {
+                        image: 'base/test/test1x1w.png'
+                    }
+                }
+            ],
+            [
+                'fi',
+                1,
+                {
+                    pattern: {
+                        image: 'base/test/test1x1w.png',
+                        width: 10,
+                        height: null // Autocompute
+                    }
+                }
+            ]
+        ],
+        chart = Highcharts.mapChart('container', {
             chart: {
                 map: 'custom/europe'
             },
@@ -312,54 +352,15 @@ QUnit.test('Images (dummy images, not loaded)', function (assert) {
                             height: 100
                         }
                     },
-                    data: [
-                        [
-                            'no',
-                            1,
-                            {
-                                pattern: {
-                                    image: 'base/test/test1x1b.png'
-                                }
-                            }
-                        ],
-                        [
-                            'dk',
-                            1,
-                            {
-                                pattern: {
-                                    image: 'base/test/test1x1b.png'
-                                }
-                            }
-                        ],
-                        [
-                            'se',
-                            1,
-                            {
-                                pattern: {
-                                    image: 'base/test/test1x1w.png'
-                                }
-                            }
-                        ],
-                        [
-                            'fi',
-                            1,
-                            {
-                                pattern: {
-                                    image: 'base/test/test1x1w.png',
-                                    width: 10,
-                                    height: null // Autocompute
-                                }
-                            }
-                        ]
-                    ]
+                    data
                 }
             ]
         }),
         finlandPoint = chart.series[0].points[3],
         defs = chart.renderer.defs.element,
         patterns = defs.getElementsByTagName('pattern'),
-        ids = [],
-        customPattern;
+        ids = [];
+    let customPattern;
 
     assert.strictEqual(
         finlandPoint.name,
@@ -370,10 +371,11 @@ QUnit.test('Images (dummy images, not loaded)', function (assert) {
     assert.strictEqual(
         patterns.length,
         3,
-        'Number of pattern defs should be 3 unique (defaults patterns not added unless used)'
+        'Number of pattern defs should be 3 unique (defaults patterns not ' +
+        'added unless used)'
     );
 
-    Highcharts.each(patterns, function (pattern) {
+    for (const pattern of patterns) {
         var id = pattern.getAttribute('id');
         if (id.indexOf('highcharts-pattern-') > -1) {
             customPattern = pattern;
@@ -385,7 +387,7 @@ QUnit.test('Images (dummy images, not loaded)', function (assert) {
             );
         }
         ids.push(id);
-    });
+    }
 
     assert.strictEqual(
         customPattern.getAttribute('width'),
@@ -403,6 +405,13 @@ QUnit.test('Images (dummy images, not loaded)', function (assert) {
         customPattern.firstChild.tagName.toLowerCase(),
         'image',
         'Pattern should have an image element.'
+    );
+
+    chart.series[0].setData(data);
+    assert.ok(
+        true,
+        `There shouldn't be any error in the console, after using setData method
+        (#19323).`
     );
 });
 
@@ -497,9 +506,9 @@ QUnit.test('Image auto resize with aspect ratio - map', function (assert) {
     test();
 
     assert.strictEqual(
-        Highcharts.grep(chart.renderer.defIds, function (id) {
-            return id.indexOf('highcharts-pattern-') > -1;
-        }).length,
+        chart.renderer.defIds.filter(
+            id => id.indexOf('highcharts-pattern-') > -1
+        ).length,
         2,
         'Verify that old pattern IDs are free'
     );
@@ -605,7 +614,8 @@ QUnit.test('Image animation opacity', function (assert) {
                                                 columnPattern.firstChild
                                                     .getAttribute('opacity'),
                                                 '0.5',
-                                                'Pattern should end at 0.5 opacity'
+                                                'Pattern should end at 0.5 ' +
+                                                'opacity'
                                             );
                                             done();
                                         }
@@ -700,4 +710,147 @@ QUnit.test('Destroy and recreate chart', function (assert) {
 
 QUnit.test('#14765: Global patterns', assert => {
     assert.ok(Highcharts.patterns, 'Global patterns should be defined');
+});
+
+function testPatternfillForChart(assert, chart) {
+    const points = chart.series[0].points,
+        customPattern = doc.getElementById(
+            getPointFillId(points[1])
+        ),
+        defaultPattern = doc.getElementById(
+            getPointFillId(points[0])
+        );
+
+    assert.ok(
+        customPattern.hasAttribute('patternTransform'),
+        'Custom pattern element should have patternTransform attribute'
+    );
+    assert.ok(
+        customPattern.getAttribute('patternTransform').includes('scale'),
+        'Custom pattern\'s patternTransform attribute should contain a scale ' +
+        'transform'
+    );
+    assert.ok(
+        defaultPattern.hasAttribute('patternTransform'),
+        'Default pattern element should have patternTransform attribute'
+    );
+    assert.ok(
+        defaultPattern.getAttribute('patternTransform').includes('scale'),
+        'Default pattern\'s patternTransform attribute should contain a ' +
+        'scale transform'
+    );
+}
+
+QUnit.test('#19980/pattern-fill/geojson', function (assert) {
+    var done = assert.async();
+    fetch(
+        'https://code.highcharts.com/mapdata/custom/world-continents.geo.json'
+    )
+        .then(response => response.json())
+        .then(geoJSON => {
+            var chart = Highcharts.mapChart('container', {
+                chart: {
+                    map: geoJSON
+                },
+                series: [
+                    {
+                        data: [
+                            {
+                                'hc-key': 'eu',
+                                color: {
+                                    patternIndex: 8
+                                }
+                            },
+                            {
+                                'hc-key': 'af',
+                                color: {
+                                    pattern: {
+                                        path: {
+                                            d: 'M 3 3 L 8 3 L 8 8 Z'
+                                        },
+                                        width: 12,
+                                        height: 12,
+                                        color: '#ff0000',
+                                        opacity: 0.5,
+                                        backgroundColor: '#000000'
+                                    }
+                                }
+                            },
+                            {
+                                'hc-key': 'as',
+                                color: {
+                                    pattern: {
+                                        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Flag_of_Queensland.svg/1920px-Flag_of_Queensland.svg.png',
+                                        aspectRatio: 2
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            });
+            testPatternfillForChart(assert, chart);
+
+            done();
+        })
+        .catch(error => {
+            assert.ok(false, 'Error downloading or processing data: ' + error);
+            done();
+        });
+});
+
+QUnit.test('#19980/pattern-fill/topojson', function (assert) {
+    var done = assert.async();
+    fetch('https://code.highcharts.com/mapdata/custom/world-continents.topo.json')
+        .then(response => response.json())
+        .then(geoJSON => {
+            var chart = Highcharts.mapChart('container', {
+                chart: {
+                    map: geoJSON
+                },
+                series: [
+                    {
+                        data: [
+                            {
+                                'hc-key': 'eu',
+                                color: {
+                                    patternIndex: 8
+                                }
+                            },
+                            {
+                                'hc-key': 'af',
+                                color: {
+                                    pattern: {
+                                        path: {
+                                            d: 'M 3 3 L 8 3 L 8 8 Z'
+                                        },
+                                        width: 12,
+                                        height: 12,
+                                        color: '#ff0000',
+                                        opacity: 0.5,
+                                        backgroundColor: '#000000'
+                                    }
+                                }
+                            },
+                            {
+                                'hc-key': 'as',
+                                color: {
+                                    pattern: {
+                                        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Flag_of_Queensland.svg/1920px-Flag_of_Queensland.svg.png',
+                                        aspectRatio: 2
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
+            });
+            testPatternfillForChart(assert, chart);
+
+            done();
+        })
+        .catch(error => {
+            assert.ok(false, 'Error downloading or processing data: ' + error);
+            done();
+        });
 });

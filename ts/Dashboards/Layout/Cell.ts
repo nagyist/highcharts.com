@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009 - 2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -22,10 +22,10 @@
  *
  * */
 
-import type Component from '../Components/Component.js';
+import type Component from '../Components/Component';
 import type CSSJSONObject from '../CSSJSONObject';
-import type { HTMLDOMElement } from '../../Core/Renderer/DOMElementType';
-import type JSON from '../../Core/JSON';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type JSON from '../JSON';
 import type LayoutType from './Layout';
 import type Row from './Row';
 import type Serializable from '../Serializable';
@@ -125,73 +125,63 @@ class Cell extends GUIElement {
             document.getElementById(options.parentContainerId || '') ||
             row.container;
 
-        if (parentContainer) {
-            const layoutOptions = row.layout.options || {},
-                rowOptions = row.options || {},
-                cellClassName = layoutOptions.cellClassName || '';
+        const layoutOptions = row.layout.options || {},
+            rowOptions = row.options || {},
+            cellClassName = layoutOptions.cellClassName || '';
 
-            let cellHeight;
+        let cellHeight;
 
-            if (options.height) {
-                if (typeof options.height === 'number') {
-                    cellHeight = options.height + 'px';
-                } else {
-                    cellHeight = options.height;
+        if (options.height) {
+            if (typeof options.height === 'number') {
+                cellHeight = options.height + 'px';
+            } else {
+                cellHeight = options.height;
+            }
+        }
+
+        this.container = this.getElementContainer({
+            render: row.layout.board.guiEnabled,
+            parentContainer: parentContainer,
+            attribs: {
+                id: options.id,
+                className: Globals.classNames.cell + ' ' +
+                    cellClassName
+            },
+            element: cellElement,
+            elementId: options.id,
+            style: merge(
+                layoutOptions.style,
+                rowOptions.style,
+                options.style,
+                {
+                    height: cellHeight
                 }
-            }
+            )
+        });
 
-            this.setElementContainer({
-                render: row.layout.board.guiEnabled,
-                parentContainer: parentContainer,
-                attribs: {
-                    id: options.id,
-                    className: Globals.classNames.cell + ' ' +
-                        cellClassName
-                },
-                element: cellElement,
-                elementId: options.id,
-                style: merge(
-                    layoutOptions.style,
-                    rowOptions.style,
-                    options.style,
-                    {
-                        height: cellHeight
-                    }
-                )
-            });
+        // Mount component from JSON.
+        if (this.options.mountedComponentJSON) {
+            this.mountComponentFromJSON(this.options.mountedComponentJSON);
+        }
 
-            // Set cell width respecting responsive options.
-            this.reflow();
+        // Nested layout
+        if (this.options.layout) {
+            this.setNestedLayout();
+        }
+        if (this.options.layoutJSON) {
+            const layout = this.row.layout,
+                board = layout.board,
+                layoutFromJSON = (
+                    layout.constructor as typeof LayoutType
+                ).fromJSON;
 
-            // Mount component from JSON.
-            if (this.options.mountedComponentJSON) {
-                this.mountComponentFromJSON(
-                    this.options.mountedComponentJSON,
-                    this.container
-                );
-            }
-
-            // nested layout
-            if (this.options.layout) {
-                this.setNestedLayout();
-            }
-            if (this.options.layoutJSON) {
-                const layout = this.row.layout,
-                    board = layout.board,
-                    layoutFromJSON = (
-                        layout.constructor as typeof LayoutType
-                    ).fromJSON;
-
-                this.nestedLayout = layoutFromJSON(
-                    merge(this.options.layoutJSON, {
-                        parentContainerId: this.options.id
-                    }),
-                    board,
-                    this
-                );
-            }
-        } else {
-            // Error
+            this.nestedLayout = layoutFromJSON(
+                merge(this.options.layoutJSON, {
+                    parentContainerId: this.options.id
+                }),
+                board,
+                this
+            );
         }
     }
 
@@ -209,7 +199,7 @@ class Cell extends GUIElement {
     /**
      * The type of GUI element.
      */
-    public readonly type = Globals.guiElementType.cell;
+    public readonly type? = Globals.guiElementType.cell;
 
     /**
      * Reference to the row instance.
@@ -236,6 +226,10 @@ class Cell extends GUIElement {
      */
     public isHighlighted?: boolean;
 
+    /**
+     * HTML container of a GUIElement.
+     */
+    public container: HTMLElement;
     /* *
      *
      *  Functions
@@ -271,16 +265,12 @@ class Cell extends GUIElement {
      * @param {Component.JSON} [json]
      * Component JSON.
      *
-     * @param {HTMLDOMElement} [cellContainer]
-     * Cell container
-     *
      * @return {boolean}
      * Returns true, if the component created from JSON is mounted,
      * otherwise false.
      */
     public mountComponentFromJSON(
-        json: Component.JSON,
-        cellContainer: (HTMLDOMElement|undefined) // @todo
+        json: Component.JSON
     ): boolean {
         const cell = this;
 
@@ -288,7 +278,7 @@ class Cell extends GUIElement {
             json.options.parentElement = cell.id;
         }
 
-        const component = componentFromJSON(json, cellContainer);
+        const component = componentFromJSON(json);
 
         if (component) {
             cell.mountedComponent = component;
@@ -307,12 +297,13 @@ class Cell extends GUIElement {
         const { row } = cell;
 
         // Destroy mounted component.
-        if (cell.mountedComponent) {
-            cell.mountedComponent.destroy();
-        }
+        cell.mountedComponent?.destroy();
+
+        // If layout exists in the cell - destroy it
+        cell.nestedLayout?.destroy();
 
         row.unmountCell(cell);
-        const destroyRow = row.cells.length === 0;
+        const destroyRow = row.cells?.length === 0;
 
         super.destroy();
 
@@ -345,6 +336,18 @@ class Cell extends GUIElement {
                 layoutJSON: cell.nestedLayout && cell.nestedLayout.toJSON()
             }
         };
+    }
+
+    /**
+     * Get the cell's options.
+     * @returns
+     * The JSON of cell's options.
+     *
+     * @internal
+     *
+     */
+    public getOptions(): Globals.DeepPartial<Cell.Options> {
+        return this.options;
     }
 
     protected changeVisibility(
@@ -391,9 +394,9 @@ class Cell extends GUIElement {
 
     // Method to get array of overlapping levels.
     public getOverlappingLevels(
-        align: string, // left, right, top, bottom
-        levelMaxGap: number, // max distance between levels
-        offset?: number // analized cell offset
+        align: 'left' | 'right' |'top' |'bottom',
+        levelMaxGap: number, // Max distance between levels
+        offset?: number // Analyzed cell offset
     ): Array<number> {
         const cell = this,
             parentCell = cell.row.layout.parentCell;
@@ -419,56 +422,46 @@ class Cell extends GUIElement {
         return levels;
     }
 
-    public reflow(
-        dashContainerSize?: string
-    ): void {
-        const cell = this,
-            cntSize = dashContainerSize ||
-                cell.row.layout.board.getLayoutContainerSize(),
-            respoOptions = cell.options.responsive,
-            optWidth = cell.options.width;
-
-        if (cell.container) {
-            let width = '';
-
-            if (
-                respoOptions &&
-                respoOptions[cntSize] &&
-                respoOptions[cntSize].width
-            ) {
-                width = cell.convertWidthToValue(respoOptions[cntSize].width);
-            } else if (optWidth) {
-                width = cell.convertWidthToValue(optWidth);
-            }
-
-            cell.setSize(width || 'auto');
-        }
-    }
-
     /**
      * Set cell size.
      *
      * @param width
      * % value or 'auto' or px
+     *
+     * @param height
+     * value in px
      */
     public setSize(
-        width: (string|number)
+        width?: (string|number),
+        height?: (string|number)
     ): void {
         const cell = this,
             editMode = cell.row.layout.board.editMode;
 
         if (cell.container) {
-            if (width === 'auto' && cell.container.style.flex !== '1 1 0%') {
-                cell.container.style.flex = '1 1 0%';
-            } else {
-                const cellWidth = cell.convertWidthToValue(width);
-
+            if (width) {
                 if (
-                    cellWidth &&
-                    cell.container.style.flex !== '0 0 ' + cellWidth
+                    width === 'auto' &&
+                    cell.container.style.flex !== '1 1 0%'
                 ) {
-                    cell.container.style.flex = '0 0 ' + cellWidth;
+                    cell.container.style.flex = '1 1 0%';
+                } else {
+                    const cellWidth = cell.convertWidthToValue(width);
+
+                    if (
+                        cellWidth &&
+                        cell.container.style.flex !== '0 0 ' + cellWidth
+                    ) {
+                        cell.container.style.flex = '0 0 ' + cellWidth;
+                    }
+
+                    cell.options.width = cellWidth;
                 }
+            }
+
+            if (height) {
+                cell.options.height = cell.container.style.height =
+                    height + 'px';
             }
 
             if (editMode) {
@@ -492,27 +485,7 @@ class Cell extends GUIElement {
         }
     }
 
-    // Updates width in responsive options.
-    public updateSize(
-        width: string, // % value or 'auto' or px
-        rwdMode?: string // small, medium, large
-    ): void {
-        const cell = this,
-            cntSize = rwdMode ||
-                cell.row.layout.board.getLayoutContainerSize();
-
-        if (!cell.options.responsive) {
-            cell.options.responsive = {};
-        }
-
-        cell.options.responsive[cntSize] = {
-            width: width
-        };
-    }
-
-    public setHighlight(
-        remove?: boolean
-    ): void {
+    public setHighlight(remove?: boolean): void {
         const cell = this,
             editMode = cell.row.layout.board.editMode;
 
@@ -540,10 +513,13 @@ class Cell extends GUIElement {
         }
     }
 
+    /**
+     * Sets the active state of the cell and resets the state of other cells.
+     */
     public setActiveState(): void {
-        // reset other boxes
         const cell = this;
 
+        // Reset other boxes
         cell.row.layout.board.mountedComponents.forEach(
             (mountedComponent):void => {
                 if (mountedComponent.cell.container) {
@@ -551,15 +527,28 @@ class Cell extends GUIElement {
                         Globals.classNames.cellActive
                     );
                 }
+                mountedComponent.component.isActive = false;
             }
         );
 
-        // apply class
+        // Apply class
         if (cell.container) {
             cell.container.classList.add(
                 Globals.classNames.cellActive
             );
         }
+    }
+
+    /**
+     * Enables or disables the loading indicator in the cell.
+     *
+     * @internal
+     */
+    public setLoadingState(enabled: boolean = true): void {
+        this.container?.classList?.toggle(
+            Globals.classNames.cellLoading,
+            enabled
+        );
     }
 
     private convertWidthToValue(
@@ -583,13 +572,24 @@ class Cell extends GUIElement {
  * */
 
 namespace Cell {
+    /**
+     * Checks if a valid cell instance.
+     */
+    export function isCell(cell: unknown): cell is Cell {
+        return cell instanceof Cell;
+    }
 
     /**
      * Responsive options of the cell.
+     *
+     * @deprecated
      */
     export interface CellResponsiveOptions {
         /**
          * The width, that should the cell have in the given responsive mode.
+         *
+         * @deprecated
+         *
          */
         width: (string|number);
     }
@@ -609,46 +609,51 @@ namespace Cell {
          * Unique cell id.
          **/
         id: string;
+
+        /**
+         * Options controlling the edit mode for the cell.
+         **/
+        editMode?: {
+            /**
+             * Individual options for the toolbar items.
+             **/
+            toolbarItems?: {
+                /**
+                 * Options for the `destroy` toolbar item.
+                 */
+                destroy: {
+                    enabled?: boolean;
+                };
+                /**
+                 * Options for the `settings` toolbar item.
+                 */
+                drag: {
+                    enabled?: boolean;
+                };
+                /**
+                 * Options for the `settings` toolbar item.
+                 */
+                settings: {
+                    enabled?: boolean;
+                };
+            }
+        }
         /**
          * Width of the cell. Can be a percentage value, pixels or a fraction.
          *
          * The fraction converts value into percents like in CSS grid is.
          * For example `1/3` means `33.333%`.
          *
-         * Examples:
-         * ```
-         * width: 300 // 300px
-         * ```
-         * ```
-         * width: '300px'
-         * ```
-         * ```
-         * width: '1/3' // 33.333%
-         * ```
-         * ```
-         * width: '33.333%'
-         * ```
+         * @deprecated
          *
-         *  Try it:
-         *
-         * {@link https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/dashboards/gui/dimensions/ | Set cell dimensions}
          **/
         width?: (string|number);
         /**
          * Height of the cell.
          *
-         * Examples:
-         * ```
-         * height: 300 // 300px
-         * ```
-         * ```
-         * height: '300px'
-         * ```
+         * @deprecated
          *
-         * Try it:
-         *
-         * {@link https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/dashboards/gui/dimensions/ | Set cell dimensions}
-         **/
+         * **/
         height?: (string|number);
         /**
          * CSS styles for cell container.
@@ -677,9 +682,7 @@ namespace Cell {
         /**
          * Options for responsive design.
          *
-         * Try it:
-         *
-         * {@link https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/dashboards/gui/responsive/ | Responsive cell width}
+         * @deprecated
          **/
         responsive?: Record<string, CellResponsiveOptions>;
     }
@@ -696,7 +699,6 @@ namespace Cell {
         style?: CSSJSONObject;
         layoutJSON?: LayoutType.JSON;
     }
-
 }
 
 /* *

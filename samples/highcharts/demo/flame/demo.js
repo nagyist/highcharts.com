@@ -1,4 +1,4 @@
-var colors = Highcharts.getOptions().colors,
+const colors = Highcharts.getOptions().colors,
     sunburstData = [{
         name: '(anonymous)',
         id: '39',
@@ -54,7 +54,7 @@ var colors = Highcharts.getOptions().colors,
         value: 33116,
         color: colors[2]
     }, {
-        name: 'getAxes',
+        name: 'createAxes',
         id: '30',
         parent: '20',
         value: 33116,
@@ -891,7 +891,7 @@ var colors = Highcharts.getOptions().colors,
         low: 330456,
         high: 397316
     }, {
-        name: 'getAxes',
+        name: 'createAxes',
         id: '30',
         value: 33116,
         color: colors[0],
@@ -1017,7 +1017,7 @@ var colors = Highcharts.getOptions().colors,
         point: {
             events: {
                 click: function () {
-                    var point = this,
+                    const point = this,
                         chart = point.series.chart,
                         series = point.series,
                         xAxis = series.xAxis,
@@ -1040,7 +1040,7 @@ var colors = Highcharts.getOptions().colors,
 
 // Create the chart
 
-var chart = Highcharts.chart('container', {
+const chart = Highcharts.chart('container', {
     chart: {
         inverted: true
     },
@@ -1109,11 +1109,12 @@ var chart = Highcharts.chart('container', {
 
 // Set up buttons for the chart layout change
 
-var icicleButton = document.getElementById('icicle'),
+const icicleButton = document.getElementById('icicle'),
     flameButton = document.getElementById('flame'),
     sunburstButton = document.getElementById('sunburst'),
-    activeButtonIndex = 1,
     allButtons = [icicleButton, flameButton, sunburstButton];
+
+let activeButtonIndex = 1;
 
 icicleButton.onclick = function () {
     chart.update({

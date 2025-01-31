@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2022 Rafal Sebestjanski, Piotr Madej
+ *  (c) 2010-2024 Rafal Sebestjanski, Piotr Madej
  *
  *  License: www.highcharts.com/license
  *
@@ -18,21 +18,23 @@
 
 import type SVGAttributes from '../Core/Renderer/SVG/SVGAttributes';
 
+import Chart from '../Core/Chart/Chart.js';
+import DataTableCore from '../Data/DataTableCore.js';
+import H from '../Core/Globals.js';
+const { composed } = H;
 import Point from '../Core/Series/Point.js';
 import Series from '../Core/Series/Series.js';
 import SeriesRegistry from '../Core/Series/SeriesRegistry.js';
+const { bubble } = SeriesRegistry.seriesTypes;
 import SVGRenderer from '../Core/Renderer/SVG/SVGRenderer.js';
 import SVGElement from '../Core/Renderer/SVG/SVGElement.js';
-
-const { bubble, pie, sunburst } = SeriesRegistry.seriesTypes;
-
 import U from '../Core/Utilities.js';
-import Chart from '../Core/Chart/Chart';
 const {
     addEvent,
     defined,
     find,
-    isNumber
+    isNumber,
+    pushUnique
 } = U;
 
 /* *
@@ -91,19 +93,9 @@ namespace SeriesOnPointComposition {
 
     /* *
      *
-     *  Constants
-     *
-     * */
-
-    const composedMembers: Array<unknown> = [];
-
-    /* *
-     *
      *  Functions
      *
      * */
-
-    /* eslint-disable valid-jsdoc */
 
     /**
      * Extends the series with a small addition.
@@ -120,34 +112,33 @@ namespace SeriesOnPointComposition {
         SeriesClass: T,
         ChartClass: typeof Chart
     ): (typeof SeriesComposition&T) {
-        const {
-            chartGetZData,
-            seriesAfterInit,
-            seriesAfterRender,
-            seriesGetCenter,
-            seriesShowOrHide,
-            seriesTranslate
-        } = Additions.prototype;
 
-        // We can mark support for pie series here because it's in the core.
-        // But all other series outside the core should be marked in its module.
-        // This is crucial when loading series-on-point before loading a
-        // module, e.g. sunburst.
-        // Supported series types:
-        // - pie
-        // - sunburst
-        pie.prototype.onPointSupported = true;
+        if (pushUnique(composed, 'SeriesOnPoint')) {
+            const {
+                chartGetZData,
+                seriesAfterInit,
+                seriesAfterRender,
+                seriesGetCenter,
+                seriesShowOrHide,
+                seriesTranslate
+            } = Additions.prototype;
 
-        if (U.pushUnique(composedMembers, SeriesClass)) {
-            addEvent(Series, 'afterInit', seriesAfterInit);
-            addEvent(Series, 'afterRender', seriesAfterRender);
-            addEvent(Series, 'afterGetCenter', seriesGetCenter);
-            addEvent(Series, 'hide', seriesShowOrHide);
-            addEvent(Series, 'show', seriesShowOrHide);
-            addEvent(Series, 'translate', seriesTranslate);
-        }
+            // We can mark support for pie series here because it's in the core.
+            // But all other series outside the core should be marked in its
+            // module. This is crucial when loading series-on-point before
+            // loading a module, e.g. sunburst.
+            // Supported series types:
+            // - pie
+            // - sunburst
+            SeriesClass.types.pie.prototype.onPointSupported = true;
 
-        if (U.pushUnique(composedMembers, ChartClass)) {
+            addEvent(SeriesClass, 'afterInit', seriesAfterInit);
+            addEvent(SeriesClass, 'afterRender', seriesAfterRender);
+            addEvent(SeriesClass, 'afterGetCenter', seriesGetCenter);
+            addEvent(SeriesClass, 'hide', seriesShowOrHide);
+            addEvent(SeriesClass, 'show', seriesShowOrHide);
+            addEvent(SeriesClass, 'translate', seriesTranslate);
+
             addEvent(ChartClass, 'beforeRender', chartGetZData);
             addEvent(ChartClass, 'beforeRedraw', chartGetZData);
         }
@@ -191,13 +182,18 @@ namespace SeriesOnPointComposition {
 
         public connector?: SVGElement;
 
+        public dataTable?: DataTableCore;
+
         public options?: OnPoint;
 
         public radii?: Array<number>;
 
         public series: SeriesComposition;
 
-        public zData?: zData;
+        /**
+         * @ignore
+         */
+        public getColumn = bubble.prototype.getColumn;
 
         /**
          * @ignore
@@ -282,7 +278,7 @@ namespace SeriesOnPointComposition {
                     d: SVGRenderer.prototype.crispLine([
                         ['M', xFrom, yFrom],
                         ['L', xTo, yTo]
-                    ], width, 'ceil'),
+                    ], width),
                     'stroke-width': width
                 };
 
@@ -376,7 +372,7 @@ namespace SeriesOnPointComposition {
             const allSeries = this.chart.series;
 
             // When toggling a series visibility, loop through all points
-            this.points.forEach((point): void => {
+            this.points?.forEach((point): void => {
                 // Find all series that are on toggled points
                 const series = find(allSeries, (series): boolean => {
                     const id = ((series.onPoint || {}).options || {}).id;
@@ -389,7 +385,7 @@ namespace SeriesOnPointComposition {
                 });
 
                 // And also toggle series that are on toggled points. Redraw is
-                // not needed because it's fired later after showOrhide event
+                // not needed because it's fired later after showOrHide event
                 series && series.setVisible(!series.visible, false);
             });
         }
@@ -416,13 +412,18 @@ namespace SeriesOnPointComposition {
             this.series.forEach((series: Series): void => {
                 const onPointOpts = series.options.onPoint;
 
-                zData.push(onPointOpts && onPointOpts.z ? onPointOpts.z : null);
+                zData.push(onPointOpts?.z ?? null);
             });
 
+            const dataTable = new DataTableCore({
+                columns: {
+                    z: zData
+                }
+            });
             this.series.forEach((series: Series): void => {
                 // Save z values of all the series
                 if (series.onPoint) {
-                    series.onPoint.zData = series.zData = zData;
+                    series.onPoint.dataTable = series.dataTable = dataTable;
                 }
             });
         }
@@ -557,4 +558,4 @@ export default SeriesOnPointComposition;
  * @apioption  plotOptions.series.onPoint.position.y
  */
 
-''; // keeps doclets above in transpiled file
+''; // Keeps doclets above in transpiled file

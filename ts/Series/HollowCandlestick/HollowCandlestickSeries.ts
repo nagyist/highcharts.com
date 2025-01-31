@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2021 Torstein Honsi
+ *  (c) 2010-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -40,6 +40,9 @@ interface HollowcandleInfo {
     isBullish: boolean;
     trendDirection: 'down'|'up';
 }
+
+// Data array type (o, h, l, c) used locally
+type DataArr = Array<number|null|undefined>;
 
 /* *
  *
@@ -145,13 +148,13 @@ class HollowCandlestickSeries extends CandlestickSeries {
      * Properties
      *
      * */
-    public data: Array<HollowCandlestickPoint> = void 0 as any;
+    public data!: Array<HollowCandlestickPoint>;
 
     public hollowCandlestickData: Array<HollowcandleInfo> = [];
 
-    public options: HollowCandlestickSeriesOptions = void 0 as any;
+    public options!: HollowCandlestickSeriesOptions;
 
-    public points: Array<HollowCandlestickPoint> = void 0 as any;
+    public points!: Array<HollowCandlestickPoint>;
 
     /* *
      *
@@ -169,31 +172,26 @@ class HollowCandlestickSeries extends CandlestickSeries {
      */
     public getPriceMovement(): void {
         const series = this,
-            // procesed and grouped data
-            processedYData = series.allGroupedData || series.yData,
+            table = series.allGroupedTable || series.dataTable,
+            dataLength = table.rowCount,
             hollowCandlestickData = this.hollowCandlestickData;
 
-        if (
-            !hollowCandlestickData.length &&
-            processedYData &&
-            processedYData.length
-        ) {
+        hollowCandlestickData.length = 0;
 
-            // First point is allways bullish (transparent).
-            hollowCandlestickData.push({
-                isBullish: true,
-                trendDirection: 'up'
-            });
+        let previousDataArr: DataArr|undefined;
+        for (let i = 0; i < dataLength; i++) {
+            const dataArr = table.getRow(
+                i,
+                this.pointArrayMap
+            ) as Array<number>;
 
-            for (let i = 1; i < processedYData.length; i++) {
-                const dataPoint: any = processedYData[i],
-                    previousDataPoint: any = processedYData[i - 1];
-
-                hollowCandlestickData.push(series.isBullish(
-                    dataPoint,
-                    previousDataPoint
-                ));
-            }
+            hollowCandlestickData.push(series.isBullish(
+                dataArr,
+                // Determine the first point is bullish based on
+                // its open and close values.(#21683)
+                i ? previousDataArr : dataArr
+            ));
+            previousDataArr = dataArr;
         }
     }
 
@@ -244,7 +242,7 @@ class HollowCandlestickSeries extends CandlestickSeries {
 
     /**
      * @private
-     * @function Highcarts.seriesTypes.hollowcandlestick#init
+     * @function Highcharts.seriesTypes.hollowcandlestick#init
      */
     public init(): void {
         super.init.apply(this, arguments as any);
@@ -265,14 +263,16 @@ class HollowCandlestickSeries extends CandlestickSeries {
      * Previous point.
      */
     public isBullish(
-        dataPoint: Array<(number)>,
-        previousDataPoint: Array<(number)>
+        dataPoint: DataArr,
+        previousDataPoint?: DataArr
     ): HollowcandleInfo {
         return {
             // Compare points' open and close value.
-            isBullish: dataPoint[0] <= dataPoint[3],
+            isBullish: (dataPoint[0] || 0) <= (dataPoint[3] || 0),
             // For bearish candles.
-            trendDirection: dataPoint[3] < previousDataPoint[3] ? 'down' : 'up'
+            trendDirection:
+                (dataPoint[3] || 0) < (previousDataPoint?.[3] || 0) ?
+                    'down' : 'up'
         };
     }
 
@@ -293,8 +293,8 @@ class HollowCandlestickSeries extends CandlestickSeries {
         point: HollowCandlestickPoint,
         state?: StatesOptionsKey
     ): SVGAttributes {
-        let attribs = super.pointAttribs.call(this, point, state),
-            stateOptions;
+        const attribs = super.pointAttribs.call(this, point, state);
+        let stateOptions;
 
         const index = point.index,
             hollowcandleInfo = this.hollowCandlestickData[index];
@@ -437,4 +437,4 @@ export default HollowCandlestickSeries;
  * @apioption series.hollowcandlestick.data
  */
 
-''; // adds doclets above to transpilat
+''; // Adds doclets above to transpiled

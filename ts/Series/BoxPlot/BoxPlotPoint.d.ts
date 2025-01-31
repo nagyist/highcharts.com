@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2021 Torstein Honsi
+ *  (c) 2010-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -13,6 +13,7 @@
  *  Imports
  *
  * */
+
 import type BoxPlotPointOptions from './BoxPlotPointOptions';
 import type BoxPlotSeries from './BoxPlotSeries';
 import type ColumnPoint from '../Column/ColumnPoint';
@@ -28,6 +29,7 @@ import type SVGElement from '../../Core/Renderer/SVG/SVGElement';
  *  Class
  *
  * */
+
 declare class BoxPlotPoint extends ColumnPoint {
     public box: SVGElement;
     public boxDashStyle: DashStyleValue;
@@ -55,14 +57,16 @@ declare class BoxPlotPoint extends ColumnPoint {
     public stemWidth: number;
     public whiskerColor: ColorType;
     public whiskerDashStyle: DashStyleValue;
+    public whiskerLength: (number|string|undefined);
     public whiskers: SVGElement;
-    public whiskerLength: (number|string);
+    public upperWhiskerLength: (number|string|undefined);
+    public lowerWhiskerLength: (number|string|undefined);
     public whiskerWidth: number;
 }
 
 /* *
  *
- *  Export Default
+ *  Default Export
  *
  * */
 

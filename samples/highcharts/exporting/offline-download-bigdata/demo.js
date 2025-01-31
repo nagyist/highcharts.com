@@ -1,18 +1,20 @@
-var nav = Highcharts.win.navigator,
+const nav = Highcharts.win.navigator,
     isMSBrowser = /Edge\/|Trident\/|MSIE /.test(nav.userAgent),
     isOldEdgeBrowser = /Edge\/\d+/.test(nav.userAgent),
     containerEl = document.getElementById('container'),
     parentEl = containerEl.parentNode;
 
 function addText(text) {
-    var heading = document.createElement('h2');
+    const heading = document.createElement('h2');
     heading.innerHTML = text;
     parentEl.appendChild(heading);
 }
 
 function fallbackHandler(options) {
-    if (options.type !== 'image/svg+xml' && isOldEdgeBrowser ||
-        options.type === 'application/pdf' && isMSBrowser) {
+    if (
+        options.type !== 'image/svg+xml' && isOldEdgeBrowser ||
+        options.type === 'application/pdf' && isMSBrowser
+    ) {
         addText(options.type + ' fell back on purpose');
     } else {
         throw 'Should not have to fall back for this combination. ' +
@@ -23,8 +25,8 @@ function fallbackHandler(options) {
 
 // NOTE: dataURL length limits in certain browsers. #6108
 
-var arr = [];
-for (var i = 0; i < 15000; i++) {
+const arr = [];
+for (let i = 0; i < 15000; i++) {
     arr.push(Math.sin(i / 15000) * i * Math.random());
 }
 
@@ -34,7 +36,20 @@ Highcharts.chart('container', {
         sourceWidth: 400,
         sourceHeight: 300,
         scale: 1,
-        error: fallbackHandler
+        error: fallbackHandler,
+        buttons: {
+            contextButton: {
+                menuItems: [
+                    'viewFullscreen',
+                    'printChart',
+                    'separator',
+                    'downloadPNG',
+                    'downloadJPEG',
+                    'downloadSVG',
+                    'downloadPDF'
+                ]
+            }
+        }
     },
     title: {
         text: 'Lots of data points, test PDF in particular'

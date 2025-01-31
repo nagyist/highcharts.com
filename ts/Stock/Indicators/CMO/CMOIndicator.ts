@@ -13,7 +13,7 @@
  *  Imports
  *
  * */
-
+import type { IndicatorLinkedSeriesLike } from '../IndicatorLike';
 import type IndicatorValuesObject from '../IndicatorValuesObject';
 import type LineSeries from '../../../Series/Line/LineSeries';
 import type { CMOOptions, CMOParamsOptions } from './CMOOptions';
@@ -80,9 +80,9 @@ class CMOIndicator extends SMAIndicator {
      *
      * */
 
-    public data: Array<CMOPoint> = void 0 as any;
-    public options: CMOOptions = void 0 as any;
-    public points: Array<CMOPoint> = void 0 as any;
+    public data!: Array<CMOPoint>;
+    public options!: CMOOptions;
+    public points!: Array<CMOPoint>;
 
     /* *
      *
@@ -91,7 +91,7 @@ class CMOIndicator extends SMAIndicator {
      * */
 
     public getValues<TLinkedSeries extends LineSeries>(
-        series: TLinkedSeries,
+        series: TLinkedSeries&IndicatorLinkedSeriesLike,
         params: CMOParamsOptions
     ): IndicatorValuesObject<TLinkedSeries> | undefined {
         const period = params.period as any,
@@ -135,7 +135,7 @@ class CMOIndicator extends SMAIndicator {
                 sumOfLowerValues += values[j - 1] - values[j];
             }
         }
-        // You might devide by 0 if all values are equal,
+        // You might divide by 0 if all values are equal,
         // so return 0 in this case.
         y =
             sumOfHigherValues + sumOfLowerValues > 0 ?
@@ -158,7 +158,7 @@ class CMOIndicator extends SMAIndicator {
             }
 
             // Check, to which sum was the first value added to,
-            // and substract this value from given sum.
+            // and subtract this value from given sum.
             if (values[i - period] > values[i - period - 1]) {
                 sumOfHigherValues -= firstAddedSum;
             } else {
@@ -235,4 +235,4 @@ export default CMOIndicator;
  * @apioption series.cmo
  */
 
-(''); // to include the above in the js output
+(''); // To include the above in the js output

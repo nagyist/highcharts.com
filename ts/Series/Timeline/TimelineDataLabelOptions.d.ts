@@ -2,7 +2,7 @@
  *
  *  Timeline Series.
  *
- *  (c) 2010-2021 Highsoft AS
+ *  (c) 2010-2024 Highsoft AS
  *
  *  Author: Daniel Studencki
  *
@@ -25,7 +25,6 @@ import type {
 } from '../../Core/Series/DataLabelOptions';
 import type Point from '../../Core/Series/Point';
 import type TimelinePoint from './TimelinePoint';
-import type TimelineSeries from './TimelineSeries';
 
 /* *
  *
@@ -34,13 +33,9 @@ import type TimelineSeries from './TimelineSeries';
  * */
 
 export interface TimelineDataLabelFormatterCallback extends DataLabelFormatterCallback {
-    (this: (Point.PointLabelObject|TimelineDataLabelContextObject)): string;
+    (this: (Point|TimelinePoint)): string;
 }
-export interface TimelineDataLabelContextObject extends Point.PointLabelObject {
-    key?: string;
-    point: TimelinePoint;
-    series: TimelineSeries;
-}
+
 export interface TimelineDataLabelOptions extends DataLabelOptions {
     alternate?: boolean;
     connectorColor?: ColorType;
@@ -49,5 +44,11 @@ export interface TimelineDataLabelOptions extends DataLabelOptions {
     formatter?: TimelineDataLabelFormatterCallback;
     width?: number;
 }
+
+/* *
+ *
+ *  Default Export
+ *
+ * */
 
 export default TimelineDataLabelOptions;

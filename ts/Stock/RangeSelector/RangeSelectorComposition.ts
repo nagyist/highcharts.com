@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2021 Torstein Honsi
+ *  (c) 2010-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -19,24 +19,20 @@
 import type Axis from '../../Core/Axis/Axis';
 import type Chart from '../../Core/Chart/Chart';
 import type RangeSelector from './RangeSelector';
-import type Time from '../../Core/Time';
-import type { VerticalAlignValue } from '../../Core/Renderer/AlignObject';
-
 import D from '../../Core/Defaults.js';
-const {
-    defaultOptions,
-    setOptions
-} = D;
+const { defaultOptions } = D;
+import H from '../../Core/Globals.js';
+const { composed } = H;
 import RangeSelectorDefaults from './RangeSelectorDefaults.js';
 import U from '../../Core/Utilities.js';
 const {
     addEvent,
     defined,
     extend,
-    find,
     isNumber,
     merge,
-    pick
+    pick,
+    pushUnique
 } = U;
 
 /* *
@@ -46,8 +42,6 @@ const {
  * */
 
 const chartDestroyEvents: Array<[Chart, Array<Function>]> = [];
-
-const composedMembers: Array<unknown> = [];
 
 /* *
  *
@@ -83,18 +77,39 @@ function axisMinFromRange(
         time = this.chart.time,
         // Get the true range from a start date
         getTrueRange = function (base: number, count: number): number {
-            const timeName: Time.TimeUnitValue = type === 'year' ?
-                'FullYear' : 'Month';
-            const date = new time.Date(base);
-            const basePeriod = time.get(timeName, date);
 
-            time.set(timeName, date, basePeriod + count);
+            const original = time.toParts(base),
+                modified = original.slice();
 
-            if (basePeriod === time.get(timeName, date)) {
-                time.set('Date', date, 0); // #6537
+            type MakeTimeArgs = [
+                number, number, number, number, number, number
+            ];
+
+            if (type === 'year') {
+                modified[0] += count;
+            } else {
+                modified[1] += count;
             }
 
-            return date.getTime() - base;
+            let d = time.makeTime.apply(time, modified as MakeTimeArgs);
+            const numbers = time.toParts(d);
+            // When subtracting a month still places us in the same month, like
+            // subtracting one month from March 31 places us on February 31,
+            // which translates to March 3 (#6537)
+            if (
+                type === 'month' &&
+                original[1] === numbers[1] &&
+                Math.abs(count) === 1
+            ) {
+                modified[0] = original[0];
+                modified[1] = original[1];
+                // 0 is the last day of the previous month
+                modified[2] = 0;
+            }
+
+            d = time.makeTime.apply(time, modified as MakeTimeArgs);
+
+            return d - base;
         };
 
     let min,
@@ -108,7 +123,7 @@ function axisMinFromRange(
 
         // Let the fixedRange reflect initial settings (#5930)
         if (this.chart) {
-            this.chart.fixedRange = max - min;
+            this.chart.setFixedRange(max - min);
         }
     }
 
@@ -145,6 +160,13 @@ function axisMinFromRange(
 /**
  * @private
  */
+function updateRangeSelectorButtons(this: Chart): void {
+    this.rangeSelector?.redrawElements();
+}
+
+/**
+ * @private
+ */
 function compose(
     AxisClass: typeof Axis,
     ChartClass: typeof Chart,
@@ -153,24 +175,21 @@ function compose(
 
     RangeSelectorConstructor = RangeSelectorClass;
 
-    if (U.pushUnique(composedMembers, AxisClass)) {
-        AxisClass.prototype.minFromRange = axisMinFromRange;
-    }
+    if (pushUnique(composed, 'RangeSelector')) {
+        const chartProto = ChartClass.prototype;
 
-    if (U.pushUnique(composedMembers, ChartClass)) {
-        addEvent(ChartClass, 'afterGetContainer', onChartAfterGetContainer);
+        AxisClass.prototype.minFromRange = axisMinFromRange;
+
+        addEvent(ChartClass, 'afterGetContainer', createRangeSelector);
         addEvent(ChartClass, 'beforeRender', onChartBeforeRender);
         addEvent(ChartClass, 'destroy', onChartDestroy);
         addEvent(ChartClass, 'getMargins', onChartGetMargins);
-        addEvent(ChartClass, 'render', onChartRender);
+        addEvent(ChartClass, 'redraw', redrawRangeSelector);
         addEvent(ChartClass, 'update', onChartUpdate);
+        addEvent(ChartClass, 'beforeRedraw', updateRangeSelectorButtons);
 
-        const chartProto = ChartClass.prototype;
+        chartProto.callbacks.push(redrawRangeSelector);
 
-        chartProto.callbacks.push(onChartCallback);
-    }
-
-    if (U.pushUnique(composedMembers, setOptions)) {
         extend(
             defaultOptions,
             { rangeSelector: RangeSelectorDefaults.rangeSelector }
@@ -187,7 +206,7 @@ function compose(
  * Initialize rangeselector for stock charts
  * @private
  */
-function onChartAfterGetContainer(
+function createRangeSelector(
     this: Chart
 ): void {
     if (
@@ -205,108 +224,61 @@ function onChartBeforeRender(
     this: Chart
 ): void {
     const chart = this,
-        axes = chart.axes,
         rangeSelector = chart.rangeSelector;
 
     if (rangeSelector) {
-
         if (isNumber(rangeSelector.deferredYTDClick)) {
             rangeSelector.clickButton(rangeSelector.deferredYTDClick);
             delete rangeSelector.deferredYTDClick;
         }
-
-        axes.forEach((axis): void => {
-            axis.updateNames();
-            axis.setScale();
-        });
-
-        chart.getAxisMargins();
-
-        rangeSelector.render();
 
         const verticalAlign = rangeSelector.options.verticalAlign;
 
         if (!rangeSelector.options.floating) {
             if (verticalAlign === 'bottom') {
                 this.extraBottomMargin = true;
-            } else if (verticalAlign !== 'middle') {
+            } else if (verticalAlign === 'top') {
                 this.extraTopMargin = true;
             }
         }
     }
 
 }
-
-/**
- * @private
- */
-function onChartCallback(
-    chart: Chart
-): void {
-    let extremes,
-        legend,
-        alignTo,
-        verticalAlign: VerticalAlignValue|undefined;
-
-    const rangeSelector = chart.rangeSelector,
-        redraw = (): void => {
-            if (rangeSelector) {
-                extremes = chart.xAxis[0].getExtremes();
-                legend = chart.legend;
-                verticalAlign = (
-                    rangeSelector &&
-                    rangeSelector.options.verticalAlign
-                );
-
-                if (isNumber(extremes.min)) {
-                    rangeSelector.render(extremes.min, extremes.max);
-                }
-
-                // Re-align the legend so that it's below the rangeselector
-                if (
-                    legend.display &&
-                    verticalAlign === 'top' &&
-                    verticalAlign === legend.options.verticalAlign
-                ) {
-                    // Create a new alignment box for the legend.
-                    alignTo = merge(chart.spacingBox);
-                    if (legend.options.layout === 'vertical') {
-                        alignTo.y = chart.plotTop;
-                    } else {
-                        alignTo.y += rangeSelector.getHeight();
-                    }
-                    legend.group.placed = false; // Don't animate the alignment.
-                    legend.align(alignTo);
-                }
-            }
-        };
-
-    if (rangeSelector) {
-        const events = find(
-            chartDestroyEvents,
-            (e: [Chart, Function[]]): boolean => e[0] === chart
-        );
-
-        if (!events) {
-            chartDestroyEvents.push([chart, [
-                // redraw the scroller on setExtremes
-                addEvent(
-                    chart.xAxis[0],
-                    'afterSetExtremes',
-                    function (e: RangeSelector.RangeObject): void {
-                        if (rangeSelector) {
-                            rangeSelector.render(e.min, e.max);
-                        }
-                    }
-                ),
-                // redraw the scroller chart resize
-                addEvent(chart, 'redraw', redraw)
-            ]]);
-        }
-
-        // do it now
-        redraw();
+function redrawRangeSelector(this: Chart): void {
+    const chart = this;
+    const rangeSelector = this.rangeSelector;
+    if (!rangeSelector) {
+        return;
     }
+    let alignTo;
+    const extremes = chart.xAxis[0].getExtremes();
+    const legend = chart.legend;
+    const verticalAlign = (
+        rangeSelector &&
+            rangeSelector.options.verticalAlign
+    );
+
+    if (isNumber(extremes.min)) {
+        rangeSelector.render(extremes.min, extremes.max);
+    }
+
+    // Re-align the legend so that it's below the rangeselector
+    if (
+        legend.display &&
+            verticalAlign === 'top' &&
+            verticalAlign === legend.options.verticalAlign
+    ) {
+        // Create a new alignment box for the legend.
+        alignTo = merge(chart.spacingBox);
+        if (legend.options.layout === 'vertical') {
+            alignTo.y = chart.plotTop;
+        } else {
+            alignTo.y += rangeSelector.getHeight();
+        }
+        legend.group.placed = false; // Don't animate the alignment.
+        legend.align(alignTo);
+    }
+
 }
 
 /**
@@ -326,42 +298,25 @@ function onChartDestroy(
     }
 }
 
+/**
+ *
+ */
 function onChartGetMargins(
     this: Chart
 ): void {
     const rangeSelector = this.rangeSelector;
 
-    if (rangeSelector) {
+    if (rangeSelector?.options?.enabled) {
         const rangeSelectorHeight = rangeSelector.getHeight();
-
-        if (this.extraTopMargin) {
-            this.plotTop += rangeSelectorHeight;
-        }
-
-        if (this.extraBottomMargin) {
-            (this.marginBottom as any) += rangeSelectorHeight;
-        }
-    }
-}
-
-/**
- * @private
- */
-function onChartRender(
-    this: Chart
-): void {
-    const chart = this,
-        rangeSelector = chart.rangeSelector;
-
-    if (rangeSelector && !rangeSelector.options.floating) {
-        rangeSelector.render();
 
         const verticalAlign = rangeSelector.options.verticalAlign;
 
-        if (verticalAlign === 'bottom') {
-            this.extraBottomMargin = true;
-        } else if (verticalAlign !== 'middle') {
-            this.extraTopMargin = true;
+        if (!rangeSelector.options.floating) {
+            if (verticalAlign === 'bottom') {
+                (this.marginBottom as any) += rangeSelectorHeight;
+            } else if (verticalAlign !== 'middle') {
+                this.plotTop += rangeSelectorHeight;
+            }
         }
     }
 }
@@ -395,7 +350,6 @@ function onChartUpdate(
     this.extraTopMargin = false;
 
     if (rangeSelector) {
-        onChartCallback(this);
 
         const verticalAlign = (
             optionsRangeSelector &&

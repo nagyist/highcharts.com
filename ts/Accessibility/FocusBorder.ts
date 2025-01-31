@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009-2021 Øystein Moseng
+ *  (c) 2009-2024 Øystein Moseng
  *
  *  Extend SVG and Chart classes with focus border capabilities.
  *
@@ -27,7 +27,6 @@ import type SVGAttributes from '../Core/Renderer/SVG/SVGAttributes';
 
 import Chart from '../Core/Chart/Chart.js';
 import SVGElement from '../Core/Renderer/SVG/SVGElement.js';
-import SVGLabel from '../Core/Renderer/SVG/SVGLabel.js';
 import U from '../Core/Utilities.js';
 const {
     addEvent,
@@ -103,8 +102,6 @@ namespace FocusBorderComposition {
      *
      * */
 
-    const composedMembers: Array<unknown> = [];
-
     // Attributes that trigger a focus border update
     const svgElementBorderUpdateTriggers = [
         'x', 'y', 'transform', 'width', 'height', 'r', 'd', 'stroke-width'
@@ -116,8 +113,6 @@ namespace FocusBorderComposition {
      *
      * */
 
-    /* eslint-disable valid-jsdoc */
-
     /**
      * @private
      */
@@ -125,19 +120,17 @@ namespace FocusBorderComposition {
         ChartClass: typeof Chart,
         SVGElementClass: typeof SVGElement
     ): void {
+        const chartProto = ChartClass.prototype as ChartComposition,
+            svgElementProto = (
+                SVGElementClass.prototype as SVGElementCompositon
+            );
 
-        if (U.pushUnique(composedMembers, ChartClass)) {
-            const chartProto = ChartClass.prototype as ChartComposition;
-
+        if (!chartProto.renderFocusBorder) {
             chartProto.renderFocusBorder = chartRenderFocusBorder;
             chartProto.setFocusToElement = chartSetFocusToElement;
         }
 
-        if (U.pushUnique(composedMembers, SVGElementClass)) {
-            const svgElementProto = (
-                SVGElementClass.prototype as SVGElementCompositon
-            );
-
+        if (!svgElementProto.addFocusBorder) {
             svgElementProto.addFocusBorder = svgElementAddFocusBorder;
             svgElementProto.removeFocusBorder = svgElementRemoveFocusBorder;
         }
@@ -278,7 +271,8 @@ namespace FocusBorderComposition {
             scaleY = this.scaleY || parent && parent.scaleY,
             oneDefined = scaleX ? !scaleY : scaleY,
             scaleBoth = oneDefined ? Math.abs(scaleX || scaleY || 1) :
-                (Math.abs(scaleX || 1) + Math.abs(scaleY || 1)) / 2;
+                (Math.abs(scaleX || 1) + Math.abs(scaleY || 1)) / 2,
+            lineHeight = this.renderer.fontMetrics(this).h;
 
         bb.x += this.translateX ? this.translateX : 0;
         bb.y += this.translateY ? this.translateY : 0;
@@ -312,7 +306,7 @@ namespace FocusBorderComposition {
             };
         }
 
-        const isLabel = this instanceof SVGLabel;
+        const isLabel = !!this.text;
         if (this.element.nodeName === 'text' || isLabel) {
             const isRotated = !!this.rotation;
             const correction = !isLabel ? getTextAnchorCorrection(this) :
@@ -327,7 +321,11 @@ namespace FocusBorderComposition {
                 borderPosX = attrX - (bb.width * correction.x) - pad;
             }
             if (!isNaN(attrY)) {
-                borderPosY = attrY - (bb.height * correction.y) - pad;
+                // Correct by line height if "text-achor" == "start", #19335.
+                const dim = this.attr('text-anchor') === 'start' ?
+                    lineHeight :
+                    bb.height;
+                borderPosY = attrY - (dim * correction.y) - pad;
             }
 
             if (isLabel && isRotated) {

@@ -1,7 +1,7 @@
 .highcharts-figure {
     max-width: 1000px;
     min-width: 320px;
-    margin: 0 auto;
+    margin: 10px auto;
 }
 
 #top {
@@ -87,4 +87,8 @@
 
 #csv {
     display: none;
+}
+
+.highcharts-description {
+    margin: 0.3rem 10px;
 }

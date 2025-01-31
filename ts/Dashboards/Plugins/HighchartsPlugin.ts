@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009-2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -20,12 +20,11 @@
  * */
 
 import type PluginHandler from '../PluginHandler';
-import type G from '../../Core/Globals';
+import type { Highcharts as H } from './HighchartsTypes';
 
-import HighchartsComponent from './HighchartsComponent.js';
-import KPIComponent from '../Components/KPIComponent.js';
-import HighchartsSyncHandlers from './HighchartsSyncHandlers.js';
-
+import HighchartsComponent from '../Components/HighchartsComponent/HighchartsComponent.js';
+import KPIComponent from '../Components/KPIComponent/KPIComponent.js';
+import NavigatorComponent from '../Components/NavigatorComponent/NavigatorComponent.js';
 
 /* *
  *
@@ -36,6 +35,8 @@ import HighchartsSyncHandlers from './HighchartsSyncHandlers.js';
 declare module '../Components/ComponentType' {
     interface ComponentTypeRegistry {
         Highcharts: typeof HighchartsComponent;
+        KPI: typeof KPIComponent;
+        Navigator: typeof NavigatorComponent;
     }
 }
 
@@ -52,29 +53,26 @@ declare module '../Components/ComponentType' {
  * Highcharts core to connect.
  */
 function connectHighcharts(
-    highcharts: typeof G
+    highcharts: H
 ): void {
     HighchartsComponent.charter = highcharts;
     KPIComponent.charter = highcharts;
+    NavigatorComponent.charter = highcharts;
 }
 
 /**
  * Callback function of the Dashboard plugin.
  *
- * @param {Dashboard.DashboardPlugin.Event} e
+ * @param {Dashboards.PluginHandler.Event} e
  * Plugin context provided by the Dashboard.
  */
 function onRegister(
     e: PluginHandler.Event
 ): void {
-    const { Sync, ComponentRegistry } = e;
+    const { ComponentRegistry } = e;
     ComponentRegistry.registerComponent('Highcharts', HighchartsComponent);
     ComponentRegistry.registerComponent('KPI', KPIComponent);
-
-    Sync.defaultHandlers = {
-        ...Sync.defaultHandlers,
-        ...HighchartsSyncHandlers
-    };
+    ComponentRegistry.registerComponent('Navigator', NavigatorComponent);
 }
 
 
@@ -84,21 +82,8 @@ function onRegister(
  * @param {Dashboard.PluginHandler.Event} e
  * Plugin context provided by the Dashboard.
  */
-function onUnregister(
-    e: PluginHandler.Event
-): void {
-    const { Sync } = e;
-
-    Object
-        .keys(HighchartsSyncHandlers)
-        .forEach((handler): void => {
-            if (
-                Sync.defaultHandlers[handler] ===
-                HighchartsSyncHandlers[handler]
-            ) {
-                delete Sync.defaultHandlers[handler];
-            }
-        });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function onUnregister(e: PluginHandler.Event): void {
 
 }
 
@@ -112,9 +97,9 @@ const HighchartsCustom = {
     connectHighcharts
 };
 
-const HighchartsPlugin: PluginHandler.DashboardPlugin<typeof HighchartsCustom> = {
+const HighchartsPlugin: PluginHandler.DashboardsPlugin<typeof HighchartsCustom> = {
     custom: HighchartsCustom,
-    name: 'Highcharts.DashboardPlugin',
+    name: 'Highcharts.DashboardsPlugin',
     onRegister,
     onUnregister
 };

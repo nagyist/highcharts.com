@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009 - 2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -19,6 +19,8 @@
  *
  * */
 
+import type Globals from './Globals';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type JSON from './JSON';
 
 /* *
@@ -33,7 +35,7 @@ import type JSON from './JSON';
  *
  * @interface Serializable
  */
-interface Serializable<T extends AnyRecord, TJSON extends Serializable.JSON<string>> {
+interface Serializable<T extends Globals.AnyRecord, TJSON extends Serializable.JSON<string>> {
 
     /**
      * Converts the given JSON to a class instance.
@@ -43,7 +45,7 @@ interface Serializable<T extends AnyRecord, TJSON extends Serializable.JSON<stri
      * @param {Serializable.JSON} json
      * JSON to deserialize as a class instance or object.
      *
-     * @return {AnyRecord}
+     * @return {Globals.AnyRecord}
      * Returns the class instance or object, or throws an exception.
      */
     fromJSON(json: TJSON): T;
@@ -83,7 +85,7 @@ namespace Serializable {
     /**
      * @private
      */
-    export interface Helper<T extends AnyRecord, TJSON extends Serializable.JSON<string>> {
+    export interface Helper<T extends Globals.AnyRecord, TJSON extends Serializable.JSON<string>> {
 
         /**
          * @name Serializer.$class
@@ -99,7 +101,7 @@ namespace Serializable {
          * @param {Serializable.JSON} json
          * JSON to deserialize as an object.
          *
-         * @return {AnyRecord}
+         * @return {Globals.AnyRecord}
          * Returns the object, or throws an exception.
          */
         fromJSON(json: TJSON): T;
@@ -109,21 +111,21 @@ namespace Serializable {
          *
          * @function Serializer.jsonSupportFor
          *
-         * @param {AnyRecord} obj
+         * @param {Globals.AnyRecord} obj
          * Object to validate.
          *
          * @return {boolean}
          * Returns true, if the helper functions can convert the given object,
          * otherwise false.
          */
-        jsonSupportFor(obj: AnyRecord): obj is T;
+        jsonSupportFor(obj: Globals.AnyRecord): obj is T;
 
         /**
          * Converts the given object to JSON.
          *
          * @function Serializer.toJSON
          *
-         * @param {AnyRecord} obj
+         * @param {Globals.AnyRecord} obj
          * Object to serialize as JSON.
          *
          * @return {Serializable.JSON}
@@ -149,12 +151,12 @@ namespace Serializable {
     /**
      * Registry of serializable classes.
      */
-    const classRegistry: Record<string, Serializable<AnyRecord, JSON<string>>> = {};
+    const classRegistry: Record<string, Serializable<Globals.AnyRecord, JSON<string>>> = {};
 
     /**
      * Registry of function sets.
      */
-    const helperRegistry: Record<string, Helper<AnyRecord, JSON<string>>> = {};
+    const helperRegistry: Record<string, Helper<Globals.AnyRecord, JSON<string>>> = {};
 
     /* *
      *
@@ -171,12 +173,12 @@ namespace Serializable {
      * @param {Serializable.JSON} json
      * JSON to create a class instance or object from.
      *
-     * @return {AnyRecord}
+     * @return {Globals.AnyRecord}
      * Returns the class instance or object, or throws an exception.
      */
     export function fromJSON(
         json: JSON<string>
-    ): AnyRecord {
+    ): Globals.AnyRecord {
         const $class: string = json.$class;
 
         if (typeof $class !== 'string') {
@@ -210,7 +212,7 @@ namespace Serializable {
      * Class to register.
      */
     export function registerClassPrototype<
-        T extends AnyRecord, TJSON extends JSON<string>>(
+        T extends Globals.AnyRecord, TJSON extends JSON<string>>(
         $class: TJSON['$class'],
         classPrototype: Serializable<T, TJSON>
     ): void {
@@ -233,7 +235,7 @@ namespace Serializable {
      * Helper functions to register.
      */
     export function registerHelper<
-        T extends AnyRecord, TJSON extends JSON<string>>(
+        T extends Globals.AnyRecord, TJSON extends JSON<string>>(
         helperFunctions: Helper<T, TJSON>
     ): void {
 
@@ -247,25 +249,25 @@ namespace Serializable {
         helperRegistry[helperFunctions.$class] = helperFunctions;
     }
 
-    export function toJSON<T extends AnyRecord, TJSON extends JSON<string>>(
+    export function toJSON<T extends Globals.AnyRecord, TJSON extends JSON<string>>(
         obj: Serializable<T, TJSON>
     ): TJSON;
     export function toJSON(
-        obj: AnyRecord
+        obj: Globals.AnyRecord
     ): JSON<string>;
     /**
      * Creates JSON from a class instance.
      *
      * @function Serializable.toJSON
      *
-     * @param {AnyRecord} obj
+     * @param {Globals.AnyRecord} obj
      * Class instance or object to serialize as JSON.
      *
      * @return {Serializable.JSON}
      * JSON of the class instance.
      */
     export function toJSON(
-        obj: AnyRecord
+        obj: Globals.AnyRecord
     ): JSON<string> {
 
         if (
@@ -279,7 +281,7 @@ namespace Serializable {
             numberOfHelpers = classes.length;
 
         let $class: string,
-            serializer: Helper<AnyRecord, JSON<string>>;
+            serializer: Helper<Globals.AnyRecord, JSON<string>>;
 
         for (let i = 0; i < numberOfHelpers; ++i) {
             $class = classes[i];

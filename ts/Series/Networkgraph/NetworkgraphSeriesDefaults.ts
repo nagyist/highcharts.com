@@ -2,7 +2,7 @@
  *
  *  Networkgraph series
  *
- *  (c) 2010-2021 Paweł Fus
+ *  (c) 2010-2024 Paweł Fus
  *
  *  License: www.highcharts.com/license
  *
@@ -19,7 +19,6 @@
  * */
 
 import type {
-    NetworkgraphDataLabelsFormatterContextObject,
     NetworkgraphSeriesOptions
 } from './NetworkgraphSeriesOptions';
 import type NetworkgraphPoint from './NetworkgraphPoint';
@@ -56,7 +55,8 @@ const NetworkgraphSeriesDefaults: NetworkgraphSeriesOptions = {
     stickyTracking: false,
 
     /**
-     * @ignore-option
+     * @default   true
+     * @extends   plotOptions.series.inactiveOtherPoints
      * @private
      */
     inactiveOtherPoints: true,
@@ -92,7 +92,7 @@ const NetworkgraphSeriesDefaults: NetworkgraphSeriesOptions = {
     states: {
         /**
          * The opposite state of a hover for a single point link. Applied
-         * to all links that are not comming from the hovered node.
+         * to all links that are not coming from the hovered node.
          *
          * @declare Highcharts.SeriesStatesInactiveOptionsObject
          */
@@ -147,20 +147,12 @@ const NetworkgraphSeriesDefaults: NetworkgraphSeriesOptions = {
          * Note that if a `format` is defined, the format takes precedence
          * and the formatter is ignored.
          *
-         * @type  {Highcharts.SeriesNetworkgraphDataLabelsFormatterCallbackFunction}
          * @since 7.0.0
          */
         formatter: function (
-            this: (
-                NetworkgraphDataLabelsFormatterContextObject|
-                Point.PointLabelObject
-            )
+            this: Point|NetworkgraphPoint
         ): string {
-            return (
-                this as (
-                    NetworkgraphDataLabelsFormatterContextObject
-                )
-            ).key;
+            return String(this.key ?? '');
         },
 
         /**
@@ -180,19 +172,15 @@ const NetworkgraphSeriesDefaults: NetworkgraphSeriesOptions = {
          * The `linkFormat` option takes precedence over the
          * `linkFormatter`.
          *
-         * @type  {Highcharts.SeriesNetworkgraphDataLabelsFormatterCallbackFunction}
          * @since 7.1.0
          */
         linkFormatter: function (
-            this: (
-                NetworkgraphDataLabelsFormatterContextObject|
-                Point.PointLabelObject
-            )
+            this: Point|NetworkgraphPoint
         ): string {
             return (
-                (this.point as NetworkgraphPoint).fromNode.name +
+                (this as NetworkgraphPoint).fromNode.name +
                 '<br>' +
-                (this.point as NetworkgraphPoint).toNode.name
+                (this as NetworkgraphPoint).toNode.name
             );
         },
 
@@ -350,7 +338,7 @@ const NetworkgraphSeriesDefaults: NetworkgraphSeriesOptions = {
         /**
          * Barnes-Hut approximation only.
          * Deteremines when distance between cell and node is small enough
-         * to caculate forces. Value of `theta` is compared directly with
+         * to calculate forces. Value of `theta` is compared directly with
          * quotient `s / d`, where `s` is the size of the cell, and `d` is
          * distance between center of cell's mass and currently compared
          * node.
@@ -376,7 +364,7 @@ const NetworkgraphSeriesDefaults: NetworkgraphSeriesOptions = {
         maxSpeed: 10,
         /**
          * Approximation used to calculate repulsive forces affecting nodes.
-         * By default, when calculateing net force, nodes are compared
+         * By default, when calculating net force, nodes are compared
          * against each other, which gives O(N^2) complexity. Using
          * Barnes-Hut approximation, we decrease this to O(N log N), but the
          * resulting graph will have different layout. Barnes-Hut
@@ -408,7 +396,7 @@ const NetworkgraphSeriesDefaults: NetworkgraphSeriesOptions = {
          * Euler integration, force is applied direct as
          * `newPosition += velocity;`.
          * In Verlet integration, new position is based on a previous
-         * posittion without velocity:
+         * position without velocity:
          * `newPosition += previousPosition - newPosition`.
          *
          * Note that different integrations give different results as forces
@@ -507,7 +495,7 @@ export default NetworkgraphSeriesDefaults;
  *
  * @type      {Array<Object|Array|number>}
  * @extends   series.line.data
- * @excluding drilldown,marker,x,y,draDrop
+ * @excluding drilldown,marker,x,y,dragDrop
  * @sample    {highcharts} highcharts/chart/reflow-true/
  *            Numerical values
  * @sample    {highcharts} highcharts/series/data-array-of-arrays/
@@ -558,7 +546,7 @@ export default NetworkgraphSeriesDefaults;
  */
 
 /**
- * The id of the auto-generated node, refering to the `from` or `to` setting of
+ * The id of the auto-generated node, referring to the `from` or `to` setting of
  * the link.
  *
  * @type      {string}
@@ -630,4 +618,4 @@ export default NetworkgraphSeriesDefaults;
  * @apioption series.networkgraph.nodes.dataLabels
  */
 
-''; // adds doclets above to transpiled file
+''; // Adds doclets above to transpiled file

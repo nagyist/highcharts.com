@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2021 Highsoft AS
+ *  (c) 2010-2024 Highsoft AS
  *
  *  Author: Sebastian Domas
  *
@@ -25,6 +25,7 @@ import type {
     CMFParamsOptions
 } from './CMFOptions';
 import type CMFPoint from './CMFPoint';
+import type { IndicatorLinkedSeriesLike } from '../IndicatorLike';
 import type IndicatorValuesObject from '../IndicatorValuesObject';
 import type LineSeries from '../../../Series/Line/LineSeries';
 
@@ -79,10 +80,10 @@ class CMFIndicator extends SMAIndicator {
          * @excluding index
          */
         params: {
-            index: void 0, // unused index, do not inherit (#15362)
+            index: void 0, // Unused index, do not inherit (#15362)
             /**
              * The id of another series to use its data as volume data for the
-             * indiator calculation.
+             * indicator calculation.
              */
             volumeSeriesID: 'volume'
         }
@@ -94,12 +95,12 @@ class CMFIndicator extends SMAIndicator {
      *
      * */
 
-    public data: Array<CMFPoint> = void 0 as any;
-    public options: CMFOptions = void 0 as any;
-    public points: Array<CMFPoint> = void 0 as any;
-    public volumeSeries: LineSeries = void 0 as any;
-    public linkedParent: LineSeries = void 0 as any;
-    public yData: Array<Array<number>> = void 0 as any;
+    public data!: Array<CMFPoint>;
+    public options!: CMFOptions;
+    public points!: Array<CMFPoint>;
+    public volumeSeries!: LineSeries;
+    public linkedParent!: LineSeries;
+    public yData!: Array<Array<number>>;
     public nameBase: string = 'Chaikin Money Flow';
 
     /* *
@@ -128,9 +129,7 @@ class CMFIndicator extends SMAIndicator {
                     )
             ),
             isSeriesOHLC: (boolean|undefined) = (
-                series &&
-                series.yData &&
-                (series.yData as any)[0].length === 4
+                series?.pointArrayMap?.length === 4
             );
 
         /**
@@ -141,8 +140,8 @@ class CMFIndicator extends SMAIndicator {
         function isLengthValid(
             serie: LineSeries
         ): (boolean|undefined) {
-            return serie.xData &&
-                serie.xData.length >= (options.params as any).period;
+            return serie.dataTable.rowCount >=
+                (options.params as any).period;
         }
 
         return !!(
@@ -164,7 +163,7 @@ class CMFIndicator extends SMAIndicator {
      */
     public getValues<TLinkedSeries extends LineSeries>(
         this: CMFIndicator,
-        series: TLinkedSeries,
+        series: TLinkedSeries&IndicatorLinkedSeriesLike,
         params: CMFParamsOptions
     ): (IndicatorValuesObject<TLinkedSeries>|undefined) {
         if (!this.isValid()) {
@@ -174,8 +173,9 @@ class CMFIndicator extends SMAIndicator {
         return this.getMoneyFlow<TLinkedSeries>(
             series.xData as number[],
             series.yData,
-            (this.volumeSeries.yData as any),
-            (params.period as any)
+            this.volumeSeries.getColumn('y'),
+            (params.period as any
+            )
         );
     }
 
@@ -199,7 +199,7 @@ class CMFIndicator extends SMAIndicator {
      */
     public getMoneyFlow<TLinkedSeries extends LineSeries>(
         xData: Array<number>,
-        seriesYData: TLinkedSeries['yData'],
+        seriesYData: IndicatorLinkedSeriesLike['yData'],
         volumeSeriesYData: Array<number>,
         period: number
     ): IndicatorValuesObject<TLinkedSeries> {
@@ -371,4 +371,4 @@ export default CMFIndicator;
  * @apioption series.cmf
  */
 
-''; // adds doclet above to the transpiled file
+''; // Adds doclet above to the transpiled file

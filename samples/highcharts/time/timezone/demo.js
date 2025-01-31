@@ -20,9 +20,8 @@ Highcharts.chart('container', {
 
     series: [{
         data: (function () {
-            var arr = [],
-                i;
-            for (i = 0; i < 16; i = i + 1) {
+            const arr = [];
+            for (let i = 0; i < 16; i = i + 1) {
                 arr.push(i);
             }
             return arr;
@@ -31,7 +30,7 @@ Highcharts.chart('container', {
             enabled: true,
             format: '{x:%H:%M}'
         },
-        pointStart: Date.UTC(2016, 9, 22),
+        pointStart: '2016-10-22',
         pointInterval: 24 * 36e5,
         name: 'UTC Midnight',
         tooltip: {

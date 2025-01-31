@@ -12,7 +12,9 @@ QUnit.test('Test algorithm on data updates.', function (assert) {
                 }
             ]
         }),
-        tr = chart.series[1].yData;
+        getYData = () => (
+            chart.series[1].getColumn('y')
+        );
 
     assert.strictEqual(
         chart.series[0].points.length,
@@ -21,20 +23,23 @@ QUnit.test('Test algorithm on data updates.', function (assert) {
     );
 
     assert.deepEqual(
-        correctFloat(tr[0], 2) === 1.1 &&
-            correctFloat(tr[tr.length - 1], 2) === 4.5,
+        correctFloat(getYData()[0], 2) === 1.1 &&
+            correctFloat(getYData()[getYData().length - 1], 2) === 4.5,
         true,
         'Correct values'
     );
 
     chart.series[0].points[3].remove();
 
-    // Values corrected for #18710 fix
-    assert.deepEqual(
-        correctFloat(tr[0], 2) === 0.92 &&
-            correctFloat(tr[tr.length - 1], 2) === 4.4,
-        true,
-        'Correct values after point.remove()'
+    assert.strictEqual(
+        correctFloat(getYData()[0], 2),
+        0.92,
+        'Correct first value after point.remove()'
+    );
+    assert.strictEqual(
+        correctFloat(getYData().at(-1), 2),
+        4.4,
+        'Correct last value after point.remove()'
     );
 
     chart.series[0].addPoint(22.38);
@@ -53,5 +58,51 @@ QUnit.test('Test algorithm on data updates.', function (assert) {
         chart.series[1].graph.attr('stroke'),
         'red',
         'Line color changed'
+    );
+
+    chart.series[0].setData([
+        [1, 1],
+        [1, 2],
+        [2, 2],
+        [2, 4],
+        [3, 3],
+        [3, 2],
+        [4, 8]
+    ]);
+    const trendLineYData = (
+        chart.series[1].getColumn('y')
+    );
+
+    assert.deepEqual(
+        correctFloat(trendLineYData[0], 2) === 1.1 &&
+            correctFloat(trendLineYData[trendLineYData.length - 1], 2) === 5.8,
+        true,
+        'Correct values for duplicated xAxis main series values, #19793.'
+    );
+
+    const alpha = 1.57692,
+        beta = -0.461538,
+        trendlineX = chart.series[1].getColumn('x'),
+        trendlineY = chart.series[1].getColumn('y'),
+        firstPointX = trendlineX[0],
+        firstPointY = trendlineY[0],
+        lastPointX = trendlineX[trendlineX.length - 1],
+        lastPointY = trendlineY[trendlineY.length - 1];
+
+    assert.close(
+        // y = ax + b
+        alpha * firstPointX + beta,
+        firstPointY,
+        0.0001,
+        'Data values should be equal to the math linear regression ' +
+        'calculations.'
+    );
+    assert.close(
+        // y = ax + b
+        alpha * lastPointX + beta,
+        lastPointY,
+        0.0001,
+        'Data values should be equal to the math linear regression ' +
+        'calculations.'
     );
 });

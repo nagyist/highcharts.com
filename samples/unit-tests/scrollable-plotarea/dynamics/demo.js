@@ -27,7 +27,9 @@ QUnit.test('Test dynamic behaviour of Scrollable PlotArea', function (assert) {
     chart.setTitle({ text: 'New title' });
 
     assert.ok(
-        chart.fixedRenderer.box.contains(chart.title.element),
+        chart.scrollablePlotArea.fixedRenderer.box.contains(
+            chart.title.element
+        ),
         'Title should be outside the scrollable plot area (#11966)'
     );
 
@@ -38,10 +40,23 @@ QUnit.test('Test dynamic behaviour of Scrollable PlotArea', function (assert) {
     });
 
     assert.ok(
-        chart.fixedRenderer.box.contains(chart.xAxis[0].axisGroup.element),
+        chart.scrollablePlotArea.fixedRenderer.box.contains(
+            chart.xAxis[0].axisGroup.element
+        ),
         'X-axis should be outside the scrollable plot area (#8862)'
     );
 
+    const scrollLeft = chart.scrollablePlotArea.scrollingContainer.scrollLeft;
+    chart.setSize(chart.chartWidth + 10);
+    assert.close(
+        chart.scrollablePlotArea.scrollingContainer.scrollLeft,
+        scrollLeft,
+        11,
+        'Scrolling position should be retained after resize'
+    );
+
+    /*
+    No longer applicable as of zone refactoring
     chart.series[0].update({
         zones: [{
             value: 0,
@@ -55,18 +70,20 @@ QUnit.test('Test dynamic behaviour of Scrollable PlotArea', function (assert) {
     });
 
     assert.strictEqual(
-        chart.series[0].clips[0].attr('width'),
+        chart.series[0].zones[0].clip.getBBox().width,
         chart.plotWidth,
-        `When the zones are applied, their' clip width should equal the chart's
+        `When the zones are applied, their clip width should equal the chart's
         plotWidth, #17481.`
     );
+    */
 });
 
 QUnit.test('Responsive scrollable plot area (#12991)', function (assert) {
     var chart = Highcharts.chart('container', {
         chart: {
             scrollablePlotArea: {
-                minHeight: 400
+                minHeight: 400,
+                scrollPositionY: 1
             },
             height: 300
         },
@@ -82,7 +99,8 @@ QUnit.test('Responsive scrollable plot area (#12991)', function (assert) {
     assert.ok(
         document.getElementsByClassName('highcharts-scrolling')[0]
             .clientHeight > 300,
-        'The scrollbar should disasppear after increasing the height of the chart (#12991)'
+        'The scrollbar should disasppear after increasing the height of the ' +
+        'chart (#12991)'
     );
 
     document.getElementById('container').style.height = '190px';
@@ -101,7 +119,8 @@ QUnit.test('Responsive scrollable plot area (#12991)', function (assert) {
 });
 
 QUnit.test(
-    'The radial axes like in the gauge series should have the ability to scroll, #14379.',
+    'The radial axes like in the gauge series should have the ability to ' +
+    'scroll, #14379.',
     function (assert) {
         const chart = Highcharts.chart('container', {
             chart: {
@@ -157,6 +176,66 @@ QUnit.test(
     }
 );
 
+QUnit.test(
+    'The parallel coordinates axes should have the ability to scroll.',
+    function (assert) {
+        const chart = Highcharts.chart('container', {
+            chart: {
+                scrollablePlotArea: {
+                    minWidth: 700
+                }
+            },
+            series: [{
+                data: [1, 2, 3, 4, 5]
+            }]
+        });
+
+        assert.ok(
+            chart.yAxis[0].axisGroup.element.parentNode.parentNode.classList
+                .contains('highcharts-fixed'),
+            'yAxis should be fixed on scroll.'
+        );
+
+        chart.update({
+            chart: {
+                parallelCoordinates: true
+            },
+            yAxis: [{}, {}, {}, {}, {}],
+            xAxis: [{
+                opposite: true
+            }],
+            legend: {
+                enabled: false
+            },
+            series: [{
+                data: [1, 2, 3, 4, 5]
+            }, {
+                data: [2, 3, 4, 7, 1]
+            }, {
+                data: [3, 4, 1, 6, 7]
+            }]
+        }, true, true, false);
+
+        assert.notOk(
+            chart.yAxis[0].axisGroup.element.parentNode.parentNode.classList
+                .contains('highcharts-fixed'),
+            'parallel yAxis should not be fixed on scroll.'
+        );
+
+        chart.update({
+            chart: {
+                parallelCoordinates: false
+            }
+        }, true, true, false);
+
+        assert.ok(
+            chart.yAxis[0].axisGroup.element.parentNode.parentNode.classList
+                .contains('highcharts-fixed'),
+            'yAxis should be fixed on scroll.'
+        );
+    }
+);
+
 QUnit.test('#12517: Reset zoom button', assert => {
     const chart = Highcharts.chart('container', {
         chart: {
@@ -180,3 +259,66 @@ QUnit.test('#12517: Reset zoom button', assert => {
         'Reset zoom button should be within chart'
     );
 });
+
+QUnit.test('Navigator grid line height in scrollablePlotArea chart', assert => {
+    const chart = Highcharts.stockChart('container', {
+        chart: {
+            scrollablePlotArea: {
+                minHeight: 500
+            }
+        },
+        series: [{
+            data: [1, 2, 3, 4, 5]
+        }]
+    });
+
+    assert.ok(
+        chart.xAxis[1].gridGroup.getBBox().height,
+        chart.yAxis[1].height,
+        'Grid lines should not exceed navigator height, #20354'
+    );
+});
+
+QUnit.test('Navigator grid line height in scrollablePlotArea chart', assert => {
+    const chart = Highcharts.stockChart('container', {
+        chart: {
+            scrollablePlotArea: {
+                minHeight: 500
+            }
+        },
+        series: [{
+            data: [1, 2, 3, 4, 5]
+        }]
+    });
+
+    assert.ok(
+        chart.xAxis[1].gridGroup.getBBox().height,
+        chart.yAxis[1].height,
+        'Grid lines should not exceed navigator height, #20354'
+    );
+});
+
+QUnit.test(
+    'Pointer events on points outside of plotArea, #21136', assert => {
+        const chart = Highcharts.chart('container', {
+                chart: {
+                    type: 'bar',
+                    scrollablePlotArea: {
+                        minHeight: 500
+                    }
+                },
+                series: [{
+                    data: [1, 2, 3]
+                }]
+            }),
+            controller = new TestController(chart);
+
+        controller.mouseOver(60, 330, undefined, true);
+
+        assert.ok(
+            chart.tooltip.isHidden,
+            `Tooltip should be hidden when pointer appears on point outside of
+            visible plot area, #21136.`
+        );
+    }
+);

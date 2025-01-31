@@ -14,6 +14,7 @@
  *
  * */
 
+import type { IndicatorLinkedSeriesLike } from '../IndicatorLike';
 import type IndicatorValuesObject from '../IndicatorValuesObject';
 import type LineSeries from '../../../Series/Line/LineSeries';
 import type {
@@ -83,9 +84,9 @@ class NATRIndicator extends ATRIndicator {
      *
      * */
 
-    public data: Array<NATRPoint> = void 0 as any;
-    public points: Array<NATRPoint> = void 0 as any;
-    public options: NATROptions = void 0 as any;
+    public data!: Array<NATRPoint>;
+    public points!: Array<NATRPoint>;
+    public options!: NATROptions;
 
     /* *
      *
@@ -94,7 +95,7 @@ class NATRIndicator extends ATRIndicator {
      * */
 
     public getValues<TLinkedSeries extends LineSeries>(
-        series: TLinkedSeries,
+        series: TLinkedSeries&IndicatorLinkedSeriesLike,
         params: NATRParamsOptions
     ): (IndicatorValuesObject<TLinkedSeries>|undefined) {
         const atrData: (
@@ -176,4 +177,4 @@ export default NATRIndicator;
  * @apioption series.natr
  */
 
-''; // to include the above in the js output'
+''; // To include the above in the js output'

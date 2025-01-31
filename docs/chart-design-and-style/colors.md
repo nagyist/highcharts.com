@@ -19,7 +19,7 @@ Linear gradients
 
 Linear gradients in Highcharts have a similar syntax to that of SVG:
 
-    
+
     color: {
         linearGradient: { x1: 0, x2: 0, y1: 0, y2: 1 },
         stops: [
@@ -41,14 +41,14 @@ Note that linear gradients can be differently defined (as an array or an object)
 *   **`userSpaceOnUse`** Default when gradient declared as an array. Start and end positions have to be declared as pixels on the chart.
 *   **`objectBoundingBox`** Default when gradient declared as an object. Start and end positions are in the range of 0 to 1 as described above. Using this might sometimes result in the disappearance of the coloured element.
 
-See the online example of a [linear gradient chart background](https://jsfiddle.net/highcharts/4rTBY/).
+See the online example of a [linear gradient chart background](https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/highcharts/chart/backgroundcolor-gradient).
 
 Radial gradients
 ----------------
 
 Since Highcharts 2.3 radial gradients have been supported. They have a similar syntax to that of SVG:
 
-    
+
     color: {
         radialGradient: { cx: 0.5, cy: 0.5, r: 0.5 },
         stops: [
@@ -59,7 +59,7 @@ Since Highcharts 2.3 radial gradients have been supported. They have a similar s
 
 The color is given as an object literal containing two properties:
 
-*   **radialGradient** holds another object literal, with three properies. The **cx** and **cy** properties are the horizontal and vertical centers of the radial gradient respectively, relative to the shape where 0 and 1 are the edges and 0.5 is the center of the shape. The r property defines the radius relative to the shape's diameter. When all values are 0.5, the gradient starts in the middle of the circle and ends along the perimeter.
+*   **radialGradient** holds another object literal, with three properties. The **cx** and **cy** properties are the horizontal and vertical centers of the radial gradient respectively, relative to the shape where 0 and 1 are the edges and 0.5 is the center of the shape. The r property defines the radius relative to the shape's diameter. When all values are 0.5, the gradient starts in the middle of the circle and ends along the perimeter.
 *   **stops** is an array of tuples. The first item in each tuple is the position in the gradient, where 0 is the start of the gradient and 1 is the end of the gradient. Multiple stops can be applied. The second item is the color for each stop. This color can also be given in the rgba format.
 
 When a radial gradient is used as the color of a pie slice or the background color of a gauge or polar chart, the gradient is drawn relative to the full circle, not only the specific shape.
@@ -72,7 +72,7 @@ Pattern fills
 Since Highcharts v6.1, pattern fills are supported natively.
 
 To enable this new functionality, load the pattern-fill.js module. Example loading the latest version from our CDN:
-    
+
     <script src="https://code.highcharts.com/modules/pattern-fill.js"></script>
 
 Then, to define a color as a pattern, we can do as follows with any color option:

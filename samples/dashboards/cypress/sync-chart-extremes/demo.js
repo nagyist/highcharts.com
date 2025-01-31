@@ -7,8 +7,7 @@ Dashboards.board('container', {
                 csv: `$GME,$AMC,$NOK
             4,5,6
             1,5,2
-            41,23,2`,
-                firstRowAsNames: true
+            41,23,2`
             }
         }]
     },
@@ -37,17 +36,24 @@ Dashboards.board('container', {
         }]
     },
     components: [{
-        cell: 'dashboard-col-0',
+        renderTo: 'dashboard-col-0',
         type: 'Highcharts',
         chartOptions: {
             chart: {
                 animation: false,
                 type: 'column',
-                zoomType: 'x',
+                zooming: {
+                    type: 'x'
+                },
                 panning: {
                     enabled: true
                 },
                 panKey: 'shift'
+            },
+            plotOptions: {
+                series: {
+                    animation: false
+                }
             },
             xAxis: [{
                 minRange: 1,
@@ -69,14 +75,21 @@ Dashboards.board('container', {
             extremes: true
         }
     }, {
-        cell: 'dashboard-col-1',
+        renderTo: 'dashboard-col-1',
         type: 'Highcharts',
         chartOptions: {
             chart: {
                 type: 'column',
                 animation: false,
-                zoomType: 'x',
-                zoomBySingleTouch: true
+                zooming: {
+                    singleTouch: true,
+                    type: 'x'
+                }
+            },
+            plotOptions: {
+                series: {
+                    animation: false
+                }
             },
             xAxis: [{
                 minRange: 1
@@ -90,15 +103,22 @@ Dashboards.board('container', {
         }
     },
     {
-        cell: 'dashboard-col-2',
+        renderTo: 'dashboard-col-2',
         type: 'Highcharts',
         chartOptions: {
             chart: {
                 inverted: true,
                 type: 'column',
                 animation: false,
-                zoomType: 'x',
-                zoomBySingleTouch: true
+                zooming: {
+                    singleTouch: true,
+                    type: 'x'
+                }
+            },
+            plotOptions: {
+                series: {
+                    animation: false
+                }
             },
             xAxis: [{
                 minRange: 1

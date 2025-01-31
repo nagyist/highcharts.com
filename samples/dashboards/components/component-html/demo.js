@@ -1,7 +1,17 @@
 Dashboards.board('container', {
+    editMode: {
+        enabled: true,
+        contextMenu: {
+            enabled: true
+        }
+    },
     gui: {
         layouts: [{
             rows: [{
+                cells: [{
+                    id: 'dashboard-main'
+                }]
+            }, {
                 cells: [{
                     id: 'dashboard-1',
                     height: 400
@@ -9,16 +19,31 @@ Dashboards.board('container', {
                     id: 'dashboard-2',
                     height: 400
                 }]
-            }, {
-                cells: [{
-                    id: 'dashboard-3'
-                }]
             }]
         }]
     },
     components: [{
         type: 'HTML',
-        cell: 'dashboard-1',
+        renderTo: 'dashboard-main',
+        elements: [{
+            tagName: 'div',
+            children: [{
+                tagName: 'h1',
+                textContent: 'Title',
+                attributes: {
+                    id: 'main-title'
+                }
+            }, {
+                tagName: 'p',
+                textContent: 'Description',
+                attributes: {
+                    id: 'description'
+                }
+            }]
+        }]
+    }, {
+        type: 'HTML',
+        renderTo: 'dashboard-1',
         elements: [{
             tagName: 'img',
             attributes: {
@@ -27,19 +52,7 @@ Dashboards.board('container', {
         }]
     }, {
         type: 'HTML',
-        cell: 'dashboard-2',
-        elements: [{
-            tagName: 'img',
-            attributes: {
-                src: 'https://www.highcharts.com/samples/graphics/maps-dark.svg'
-            }
-        }]
-    }, {
-        type: 'HTML',
-        cell: 'dashboard-3',
-        elements: [{
-            tagName: 'h1',
-            textContent: 'Placeholder text'
-        }]
+        renderTo: 'dashboard-2',
+        html: '<img src="https://www.highcharts.com/samples/graphics/maps-dark.svg">'
     }]
 });

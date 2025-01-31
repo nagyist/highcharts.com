@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009-2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -8,16 +8,20 @@
  *
  *  Authors:
  *  - Sophie Bremer
+ *  - Dawid Dragula
  *
  * */
 
+
 'use strict';
+
 
 /* *
  *
  *  Imports
  *
  * */
+
 
 import type DataEvent from '../DataEvent';
 import type {
@@ -32,18 +36,20 @@ const {
     merge
 } = U;
 
+
 /* *
  *
  *  Class
  *
  * */
 
+
 /**
  * Filters out table rows with a specific value range.
  *
- * @private
  */
 class RangeModifier extends DataModifier {
+
 
     /* *
      *
@@ -51,14 +57,15 @@ class RangeModifier extends DataModifier {
      *
      * */
 
+
     /**
      * Default options for the range modifier.
      */
     public static readonly defaultOptions: RangeModifierOptions = {
         type: 'Range',
-        ranges: [],
-        strict: false
+        ranges: []
     };
+
 
     /* *
      *
@@ -66,19 +73,21 @@ class RangeModifier extends DataModifier {
      *
      * */
 
+
     /**
      * Constructs an instance of the range modifier.
      *
-     * @param {RangeModifier.Options} [options]
+     * @param {Partial<RangeModifier.Options>} [options]
      * Options to configure the range modifier.
      */
     public constructor(
-        options?: DeepPartial<RangeModifierOptions>
+        options?: Partial<RangeModifierOptions>
     ) {
         super();
 
         this.options = merge(RangeModifier.defaultOptions, options);
     }
+
 
     /* *
      *
@@ -86,16 +95,19 @@ class RangeModifier extends DataModifier {
      *
      * */
 
+
     /**
      * Options of the range modifier.
      */
     public readonly options: RangeModifierOptions;
+
 
     /* *
      *
      *  Functions
      *
      * */
+
 
     /**
      * Replaces table rows with filtered rows.
@@ -116,16 +128,19 @@ class RangeModifier extends DataModifier {
         const modifier = this;
 
         modifier.emit({ type: 'modify', detail: eventDetail, table });
+        let indexes: Array<number|undefined> = [];
 
         const {
+            additive,
             ranges,
             strict
         } = modifier.options;
 
         if (ranges.length) {
-            const columns = table.getColumns(),
-                rows: Array<DataTable.Row> = [],
-                modified = table.modified;
+            const modified = table.modified;
+
+            let columns = table.getColumns(),
+                rows: Array<DataTable.Row> = [];
 
             for (
                 let i = 0,
@@ -144,13 +159,23 @@ class RangeModifier extends DataModifier {
                     continue;
                 }
 
+                if (i > 0 && !additive) {
+                    modified.deleteRows();
+                    modified.setRows(rows);
+                    modified.setOriginalRowIndexes(indexes, true);
+                    columns = modified.getColumns();
+                    rows = [];
+                    indexes = [];
+                }
+
                 rangeColumn = (columns[range.column] || []);
 
                 for (
                     let j = 0,
                         jEnd = rangeColumn.length,
                         cell: DataTable.CellType,
-                        row: (DataTable.Row|undefined);
+                        row: DataTable.Row | undefined,
+                        originalRowIndex: number | undefined;
                     j < jEnd;
                     ++j
                 ) {
@@ -176,10 +201,17 @@ class RangeModifier extends DataModifier {
                         cell >= range.minValue &&
                         cell <= range.maxValue
                     ) {
-                        row = table.getRow(j);
+                        if (additive) {
+                            row = table.getRow(j);
+                            originalRowIndex = table.getOriginalRowIndex(j);
+                        } else {
+                            row = modified.getRow(j);
+                            originalRowIndex = modified.getOriginalRowIndex(j);
+                        }
 
                         if (row) {
                             rows.push(row);
+                            indexes.push(originalRowIndex);
                         }
                     }
                 }
@@ -187,54 +219,22 @@ class RangeModifier extends DataModifier {
 
             modified.deleteRows();
             modified.setRows(rows);
+            modified.setOriginalRowIndexes(indexes);
         }
 
         modifier.emit({ type: 'afterModify', detail: eventDetail, table });
 
         return table;
     }
-
-
-    /**
-     * Utility function that returns the first row index
-     * if the table has been modified by a range modifier
-     * @param {DataTable} table the table to get the offset from
-     *
-     * @return {number} The row offset of the modified table
-     */
-    public getModifiedTableOffset(table: DataTable): number {
-        const { ranges } = this.options;
-
-        if (ranges) {
-            const minRange = ranges.reduce(
-                (minRange, currentRange): RangeModifierRangeOptions => {
-                    if (currentRange.minValue > minRange.minValue) {
-                        minRange = currentRange;
-                    }
-                    return minRange;
-
-                }, ranges[0]
-            );
-
-            const tableRowIndex = table.getRowIndexBy(
-                minRange.column,
-                minRange.minValue
-            );
-
-            if (tableRowIndex) {
-                return tableRowIndex;
-            }
-        }
-
-        return 0;
-    }
 }
+
 
 /* *
  *
  *  Registry
  *
  * */
+
 
 declare module './DataModifierType' {
     interface DataModifierTypes {
@@ -244,10 +244,12 @@ declare module './DataModifierType' {
 
 DataModifier.registerType('Range', RangeModifier);
 
+
 /* *
  *
  *  Default Export
  *
  * */
+
 
 export default RangeModifier;

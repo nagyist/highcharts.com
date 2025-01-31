@@ -2,7 +2,7 @@
  *
  *  Organization chart module
  *
- *  (c) 2018-2021 Torstein Honsi
+ *  (c) 2018-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -19,17 +19,12 @@
  * */
 
 import type CSSObject from '../../Core/Renderer/CSSObject';
-import type {
-    OrganizationDataLabelsFormatterCallbackFunction,
-    OrganizationDataLabelFormatterContext
-} from './OrganizationDataLabelOptions';
 import type OrganizationPoint from './OrganizationPoint';
 import type OrganizationSeriesOptions from './OrganizationSeriesOptions';
 import type Point from '../../Core/Series/Point';
-import type { SankeyDataLabelFormatterContext } from '../Sankey/SankeyDataLabelOptions';
+import type SankeyPoint from '../Sankey/SankeyPoint';
 
 import { Palette } from '../../Core/Color/Palettes.js';
-import { type DataLabelTextPathOptions } from '../../Core/Series/DataLabelOptions';
 
 /* *
  *
@@ -166,11 +161,7 @@ const OrganizationSeriesDefaults: OrganizationSeriesOptions = {
          * @since 6.0.2
          */
         nodeFormatter: function (
-            this: (
-                Point.PointLabelObject|
-                OrganizationDataLabelFormatterContext|
-                SankeyDataLabelFormatterContext
-            )
+            this: (Point|OrganizationPoint|SankeyPoint)
         ): string {
             const outerStyle: CSSObject = {
                     width: '100%',
@@ -227,10 +218,7 @@ const OrganizationSeriesDefaults: OrganizationSeriesOptions = {
 
             // PhantomJS doesn't support flex, roll back to absolute
             // positioning
-            if (
-                (this as OrganizationDataLabelFormatterContext)
-                    .series.chart.renderer.forExport
-            ) {
+            if (this.series.chart.renderer.forExport) {
                 outerStyle.display = 'block';
                 innerStyle.position = 'absolute';
                 innerStyle.left = image ? '30%' : 0;
@@ -271,7 +259,9 @@ const OrganizationSeriesDefaults: OrganizationSeriesOptions = {
             /** @internal */
             fontWeight: 'normal',
             /** @internal */
-            fontSize: '0.9em'
+            fontSize: '0.9em',
+            /** @internal */
+            textAlign: 'left'
         },
 
         useHTML: true,
@@ -318,6 +308,19 @@ const OrganizationSeriesDefaults: OrganizationSeriesOptions = {
      */
     hangingIndentTranslation: 'inherit',
     /**
+     * Whether links connecting hanging nodes should be drawn on the left
+     * or right side. Useful for RTL layouts.
+     * **Note:** Only effects inverted charts (vertical layout).
+     *
+     * @sample highcharts/series-organization/hanging-side
+     *         Nodes hanging from right side.
+     *
+     * @type {'left'|'right'}
+     * @since 11.3.0
+     * @default 'left'
+     */
+    hangingSide: 'left',
+    /**
      *
      * The color of the links between nodes. This option is moved to
      * [link.color](#plotOptions.organization.link.color).
@@ -357,8 +360,8 @@ const OrganizationSeriesDefaults: OrganizationSeriesOptions = {
     minNodeLength: 10,
     /**
      * In a horizontal chart, the width of the nodes in pixels. Note that
-     * most organization charts are vertical, so the name of this option
-     * is counterintuitive.
+     * most organization charts are inverted (vertical), so the name of this
+     * option is counterintuitive.
      *
      * @see [minNodeLength](#plotOptions.organization.minNodeLength)
      *
@@ -475,7 +478,7 @@ const OrganizationSeriesDefaults: OrganizationSeriesOptions = {
  * Layout for the node's children. If `hanging`, this node's children will hang
  * below their parent, allowing a tighter packing of nodes in the diagram.
  *
- * Note: Since @next version, the `hanging` layout is set by default for
+ * Note: Since version 10.0.0, the `hanging` layout is set by default for
  * children of a parent using `hanging` layout.
  *
  * @sample highcharts/demo/organization-chart
@@ -526,7 +529,7 @@ const OrganizationSeriesDefaults: OrganizationSeriesOptions = {
  * @apioption series.organization.data
  */
 
-''; // keeps doclets above in JS file
+''; // Keeps doclets above in JS file
 
 /* *
  *

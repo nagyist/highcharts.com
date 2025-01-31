@@ -12,14 +12,12 @@
  *
  * */
 
-import type Annotation from './Annotation';
 import type AnnotationChart from './AnnotationChart';
 import type {
     AnnotationPoint,
     AnnotationPointType
 } from './AnnotationSeries';
 import type Axis from '../../Core/Axis/Axis';
-import type Controllable from './Controllables/Controllable';
 import type ControlTarget from './ControlTarget';
 import type MockPointOptions from './MockPointOptions';
 import type PositionObject from '../../Core/Renderer/PositionObject';
@@ -96,6 +94,8 @@ interface MockSeries {
  * The options object.
  */
 class MockPoint {
+
+    point: MockPoint;
 
     /* *
      *
@@ -203,6 +203,9 @@ class MockPoint {
         target: (ControlTarget|null),
         options: (MockPointOptions|Function)
     ) {
+        // Circular reference for formats and formatters
+        this.point = this;
+
         /**
          * A mock series instance imitating a real series from a real point.
          *
@@ -280,8 +283,8 @@ class MockPoint {
     public isInside?: boolean;
     public negative?: boolean;
     public options: (MockPointOptions|Function);
-    public plotX: number = void 0 as any;
-    public plotY: number = void 0 as any;
+    public plotX!: number;
+    public plotY!: number;
     public series: MockSeries;
     public target: (ControlTarget|null);
     public ttBelow?: boolean;
@@ -315,21 +318,6 @@ class MockPoint {
         this.setAxis(options, 'y');
 
         this.refresh();
-    }
-
-    /**
-     * Returns a label config object - the same as
-     * Highcharts.Point.prototype.getLabelConfig
-     * @private
-     * @return {Highcharts.AnnotationMockLabelOptionsObject}
-     * The point's label config
-     */
-    public getLabelConfig(): MockLabelConfigObject {
-        return {
-            x: this.x,
-            y: this.y,
-            point: this
-        };
     }
 
     /**
@@ -673,4 +661,4 @@ export default MockPoint;
  * @type {boolean|undefined}
  */
 
-(''); // keeps doclets above in JS file
+(''); // Keeps doclets above in JS file

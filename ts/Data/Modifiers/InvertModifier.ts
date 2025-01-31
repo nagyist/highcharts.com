@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009-2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -63,11 +63,11 @@ class InvertModifier extends DataModifier {
     /**
      * Constructs an instance of the invert modifier.
      *
-     * @param {InvertModifier.Options} [options]
+     * @param {Partial<InvertModifier.Options>} [options]
      * Options to configure the invert modifier.
      */
     public constructor(
-        options?: DeepPartial<InvertModifierOptions>
+        options?: Partial<InvertModifierOptions>
     ) {
         super();
 
@@ -318,7 +318,7 @@ class InvertModifier extends DataModifier {
 
         const modified = table.modified;
 
-        if (table.hasColumns(['columnNames'])) { // inverted table
+        if (table.hasColumns(['columnNames'])) { // Inverted table
             const columnNames: Array<string> = (
                     (table.deleteColumns(['columnNames']) || {})
                         .columnNames || []
@@ -343,7 +343,7 @@ class InvertModifier extends DataModifier {
             modified.deleteColumns();
             modified.setColumns(columns);
 
-        } else { // regular table
+        } else { // Regular table
             const columns: DataTable.ColumnCollection = {};
 
             for (

@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2020-2022 Highsoft AS
+ *  (c) 2020-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -105,7 +105,7 @@ class DataSeriesConverter {
      * The id of the series.
      *
      * @return {Array<PointOptions>}
-     * Returns an array of series points opitons.
+     * Returns an array of series points options.
      */
     public getSeriesData(seriesId: string): Array<PointOptions> {
         const converter = this,
@@ -155,7 +155,7 @@ class DataSeriesConverter {
      * Get all series data stored in the converter.
      *
      * @return {Array<SeriesOptions>}
-     * Returns an array of series opitons.
+     * Returns an array of series options.
      */
     public getAllSeriesData(): Array<SeriesOptions> {
         const converter = this,
@@ -209,7 +209,7 @@ class DataSeriesConverter {
             yValueId,
             id;
 
-        if (allSeries && allSeries.length) {
+        if (allSeries?.length) {
             this.options.seriesOptions = [];
             this.seriesMeta = [];
             this.seriesIdMap = {};
@@ -293,7 +293,7 @@ class DataSeriesConverter {
 
                     if (!rowIndex) {
                         columns.id = id;
-                        table.setRows([columns], void 0, eventDetail);
+                        table.setRows([columns], void 0, void 0, eventDetail);
                     } else if (columns[y]) {
                         table.setCell(y, rowIndex, columns[y], eventDetail);
                     }

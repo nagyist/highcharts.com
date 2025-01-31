@@ -1,5 +1,5 @@
-import Board from '/base/code/dashboards/es-modules/Dashboards/Board.js';
 import DashboardGlobals from '/base/code/dashboards/es-modules/Dashboards/Globals.js';
+import EditMode from '../../../../code/dashboards/es-modules/masters/modules/layout.src.js';
 const { test, skip } = QUnit;
 
 function setupContainer() {
@@ -29,7 +29,7 @@ const layouts = [{
 }]
 
 const components = [{
-    cell: 'dashboard-col-0',
+    renderTo: 'dashboard-col-0',
     type: 'Highcharts',
     chartOptions: {
         type: 'pie',
@@ -42,7 +42,7 @@ const components = [{
         }
     }
 }, {
-    cell: 'dashboard-col-1',
+    renderTo: 'dashboard-col-1',
     type: 'HTML',
     elements: [{
         tagName: 'img',
@@ -51,7 +51,7 @@ const components = [{
             title: 'I heard you like components'
         }
     }, {
-        textContent: 'Loreum ipsum'
+        textContent: 'Lorem ipsum'
     }]
 }]
 
@@ -73,19 +73,13 @@ test('Components in layout with no row style', function (assert) {
         components
     });
 
-    // assert.strictEqual(
-    //     container.innerText,
-    //     '',
-    //     'Container content should be cleared after creating dashboard.'
-    // );
-
-    const comps = document.querySelectorAll('.' + DashboardGlobals.classNamePrefix + 'component')
+    const comps = document.querySelectorAll(
+        '[class*="' + DashboardGlobals.classNamePrefix + 'component"]:not([class*="-content"])'
+    );
     for (const component of comps) {
-        assert.strictEqual(component.style.height, '', 'Height should be unset')
-        assert.strictEqual(component.style.width, '', 'Width should be unset')
+        assert.strictEqual(component.style.height, '', 'Height should be unset');
+        assert.strictEqual(component.style.width, '', 'Width should be unset');
     }
-
-
 });
 
 test('Components in rows with set height', function (assert) {
@@ -107,15 +101,26 @@ test('Components in rows with set height', function (assert) {
     const columns = document.querySelectorAll('.' + DashboardGlobals.classNamePrefix + 'cell')
     assert.strictEqual(columns.length, 2)
     for (const column of columns) {
-        const components = column.querySelectorAll('.' + DashboardGlobals.classNamePrefix + 'component')
+        const components = column.querySelectorAll(
+            '[class*="' + DashboardGlobals.classNamePrefix + 'component"]:not([class*="-content"])'
+        );
+
         for (const component of components) {
-            assert.strictEqual(component.style.height, column.style.height, 'Height should be set to the row')
-            assert.strictEqual(component.style.width, '', 'Width should be unset')
+            assert.strictEqual(
+                component.style.height,
+                column.style.height,
+                'Height should be set to the row.'
+            );
+            assert.strictEqual(
+                component.style.width,
+                '',
+                'Width should be unset'
+            );
         }
     }
 
     layouts[0].rows[0].style = {}
-})
+});
 
 skip('Components in layout with set width', function (assert) {
     const container = setupContainer();
@@ -144,7 +149,7 @@ skip('Components in layout with set width', function (assert) {
     }
 
     layouts[0].style = {}
-})
+});
 
 test('Components and rows in layout with set height', function (assert) {
     const container = setupContainer();
@@ -181,7 +186,7 @@ test('Components and rows in layout with set height', function (assert) {
     // }
 
     layouts[0].style = {}
-})
+});
 
 test('Nested layouts serialization.', function (assert) {
     const container = setupContainer();
@@ -203,8 +208,7 @@ test('Nested layouts serialization.', function (assert) {
         editMode: {
             enabled: true,
             contextMenu: {
-                enabled: true,
-                items: ['editMode']
+                enabled: true
             }
         },
         gui: {
@@ -229,13 +233,13 @@ test('Nested layouts serialization.', function (assert) {
             }]
         },
         components: [{
-            cell: 'dashboard-col-nolayout-0',
+            renderTo: 'dashboard-col-nolayout-0',
             ...chartComponentOptions
         }, {
-            cell: 'dashboard-col-layout-1',
+            renderTo: 'dashboard-col-layout-1',
             ...chartComponentOptions
         }, {
-            cell: 'dashboard-col-layout-4',
+            renderTo: 'dashboard-col-layout-4',
             ...chartComponentOptions
         }]
 
@@ -276,8 +280,7 @@ test('Reserialized cell width', function (assert) {
         editMode: {
             enabled: true,
             contextMenu: {
-                enabled: true,
-                items: ['editMode']
+                enabled: true
             }
         },
         gui: {
@@ -307,15 +310,15 @@ test('Reserialized cell width', function (assert) {
         },
         components: [
             {
-                cell: 'cell-1',
+                renderTo: 'cell-1',
                 ...chartComponentOptions
             },
             {
-                cell: 'cell-2',
+                renderTo: 'cell-2',
                 ...chartComponentOptions
             },
             {
-                cell: 'cell-3',
+                renderTo: 'cell-3',
                 ...chartComponentOptions
             }
         ]
@@ -342,3 +345,26 @@ test('Reserialized cell width', function (assert) {
     );
 
 });
+
+test('IDs of rows, cells and layouts', function (assert) {
+    const container = setupContainer();
+    const board = Dashboards.board(container.id, {
+        gui: {
+            layouts: [{
+                rows: [{
+                    cells: [{
+                        width: '30%'
+                    }]
+                }]
+            }]
+        }
+    });
+
+    const layout = document.querySelectorAll('.' + DashboardGlobals.classNamePrefix + 'layout')[0];
+    const row = document.querySelectorAll('.' + DashboardGlobals.classNamePrefix + 'row')[0];
+    const cell = document.querySelectorAll('.' + DashboardGlobals.classNamePrefix + 'cell')[0];
+
+    assert.strictEqual(layout.getAttribute('id'), null, 'Layout\'s id should not exist');
+    assert.strictEqual(cell.getAttribute('id'), null, 'Cell\'s id should not exist');
+    assert.strictEqual(row.getAttribute('id'), null, 'Row\'s id should not exist');
+})

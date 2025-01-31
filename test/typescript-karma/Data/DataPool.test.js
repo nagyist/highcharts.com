@@ -27,31 +27,6 @@ QUnit.test('DataPool', function (assert) {
     );
 });
 
-QUnit.test('DataPool options', async function (assert) {
-    const pool = new DataPool({
-        connectors: [{
-            id: 'CSV Test',
-            type: 'CSV',
-            options: {
-                csv: 'y,z\n4,5\n6,7\n8,9',
-                dataTable: {
-                    columns: {
-                        x: [1, 2, 3]
-                    }
-                }
-            }
-        }]
-    });
-
-    const csvTable = await pool.getConnectorTable('CSV Test');
-
-    assert.deepEqual(
-        csvTable.getColumnNames(),
-        ['x', 'y', 'z'],
-        'Table columns should be merged.'
-    );
-});
-
 QUnit.test('DataPool events', async function (assert) {
     const connectorOptions = {
         type: 'CSV',
@@ -60,25 +35,25 @@ QUnit.test('DataPool events', async function (assert) {
             csv: 'A,B\n1,2'
         }
     };
-    const pool = new DataPool();
+    const dataPool = new DataPool();
 
     let eventLog = [];
 
     function logEvent (e) {
         assert.strictEqual(
             this,
-            pool,
+            dataPool,
             'Event scope should be the data pool.'
         );
         eventLog.push(e.type);
     };
 
-    pool.on('load', logEvent);
-    pool.on('afterLoad', logEvent);
-    pool.on('setConnectorOptions', logEvent);
-    pool.on('afterSetConnectorOptions', logEvent);
+    dataPool.on('load', logEvent);
+    dataPool.on('afterLoad', logEvent);
+    dataPool.on('setConnectorOptions', logEvent);
+    dataPool.on('afterSetConnectorOptions', logEvent);
 
-    pool.setConnectorOptions(connectorOptions);
+    dataPool.setConnectorOptions(connectorOptions);
 
     assert.deepEqual(
         eventLog,
@@ -88,7 +63,7 @@ QUnit.test('DataPool events', async function (assert) {
 
     eventLog.length = 0;
 
-    await pool.getConnector('my-connector');
+    await dataPool.getConnector('my-connector');
 
     assert.deepEqual(
         eventLog,
@@ -98,12 +73,106 @@ QUnit.test('DataPool events', async function (assert) {
 
     eventLog.length = 0;
 
-    pool.setConnectorOptions(connectorOptions);
+    dataPool.setConnectorOptions(connectorOptions);
 
     assert.deepEqual(
         eventLog,
         ['setConnectorOptions', 'afterSetConnectorOptions'],
         'Data pool should emit new set events.'
+    );
+
+});
+
+QUnit.test('DataPool promises', async function (assert) {
+    const dataPool = new DataPool({
+        connectors: [{
+            id: 'My Data',
+            type: 'CSV',
+            options: {
+                csv: 'a,b,c\n1,2,3\n4,5,6\n7,8,9',
+                dataModifier: {
+                    type: 'Chain',
+                    chain: [{
+                        type: 'Chain',
+                        chain: [{
+                            type: 'Range',
+                            ranges: [{
+                                column: 'a',
+                                minValue: 1,
+                                maxValue: 7
+                            }]
+                        }]
+                    }]
+                }
+            }
+        }]
+    });
+
+    let firstLoadingDone = false;
+
+    /* first no await */
+    dataPool
+        .getConnector('My Data')
+        .then(() => firstLoadingDone = true);
+
+    /* second time await */
+    await dataPool.getConnector('My Data');
+
+    assert.ok(
+        firstLoadingDone,
+        'DataPool should resolve second connector request after first one.'
+    );
+
+});
+
+QUnit.test('DataPool replacement', async function (assert) {
+    const dataPool = new DataPool({
+        connectors: [{
+            id: 'My Data',
+            type: 'CSV',
+            options: {
+                csv: 'a,b,c\n1,2,3\n4,5,6\n7,8,9'
+            }
+        }]
+    });
+
+    assert.ok(
+        dataPool.isNewConnector('My Data'),
+        'DataPool connector should be new.'
+    );
+
+    const firstConnector = await dataPool.getConnector('My Data');
+
+    assert.notOk(
+        dataPool.isNewConnector('My Data'),
+        'DataPool connector should be not new anymore.'
+    );
+
+    dataPool.setConnectorOptions({
+        id: 'My Data',
+        type: 'JSON',
+        options: {
+            columns: ['a', 'b', 'c'],
+            data: [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        }
+    });
+
+    assert.ok(
+        dataPool.isNewConnector('My Data'),
+        'DataPool connector should be new again.'
+    );
+
+    const secondConnector = await dataPool.getConnector('My Data');
+
+    assert.notOk(
+        dataPool.isNewConnector('My Data'),
+        'DataPool connector should be not new anymore.'
+    );
+
+    assert.notEqual(
+        firstConnector,
+        secondConnector,
+        'DataPool connectors should not be equal.'
     );
 
 });

@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2010-2021 Torstein Honsi
+ *  (c) 2010-2024 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -14,6 +14,7 @@
  *
  * */
 
+import type Chart from './Chart/Chart';
 import type ColorString from './Color/ColorString';
 import type CSSObject from './Renderer/CSSObject';
 import type { SeriesTypePlotOptions } from './Series/SeriesType';
@@ -30,21 +31,25 @@ export interface LabelsItemsOptions {
     style?: CSSObject;
 }
 
-export interface LangOptions {
-    decimalPoint: string;
-    invalidDate?: string;
+export interface LangOptions extends LangOptionsCore {
     loading: string;
-    months: Array<string>;
     numericSymbolMagnitude?: number;
-    numericSymbols: Array<string>;
+    numericSymbols: Array<string> | undefined;
     resetZoom: string;
     resetZoomTitle: string;
-    shortMonths: Array<string>;
-    shortWeekdays?: Array<string>;
-    thousandsSep: string;
-    weekdays: Array<string>;
     zoomIn?: string;
     zoomOut?: string;
+}
+
+export interface LangOptionsCore {
+    decimalPoint?: string;
+    invalidDate?: string;
+    locale?: string|Array<string>;
+    months?: Array<string>;
+    shortMonths?: Array<string>;
+    shortWeekdays?: Array<string>;
+    thousandsSep?: string;
+    weekdays?: Array<string>;
 }
 
 export interface LoadingOptions {
@@ -56,6 +61,7 @@ export interface LoadingOptions {
 
 export interface NumberFormatterCallbackFunction {
     (
+        this: Chart|Object|void,
         number: number,
         decimals: number,
         decimalPoint?: string,
@@ -70,6 +76,9 @@ export interface Options {
     plotOptions: SeriesTypePlotOptions;
     symbols?: Array<SymbolKey>;
     global: GlobalOptions;
+}
+
+export interface DefaultOptions extends Options {
 }
 
 export type OptionsOverflowValue = ('allow'|'justify');

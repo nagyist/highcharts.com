@@ -1,6 +1,6 @@
 /* *
  *
- *  (c) 2009 - 2023 Highsoft AS
+ *  (c) 2009-2024 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -16,6 +16,7 @@
 import type {
     HTMLDOMElement
 } from '../../Core/Renderer/DOMElementType';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type JSON from '../JSON';
 import type Cell from '../Layout/Cell.js';
 import type Serializable from '../Serializable';
@@ -29,8 +30,7 @@ const {
     addEvent,
     createElement,
     fireEvent,
-    removeEvent,
-    pick
+    removeEvent
 } = U;
 
 import EditMode from '../EditMode/EditMode';
@@ -64,8 +64,8 @@ class Resizer {
         },
         type: 'xy',
         snap: {
-            width: 20,
-            height: 20
+            width: 9,
+            height: 17
         }
     };
 
@@ -100,9 +100,7 @@ class Resizer {
         this.startX = 0;
         this.tempSiblingsWidth = [];
 
-        this.addSnaps(
-            this.options
-        );
+        this.addSnaps();
     }
 
     /* *
@@ -167,6 +165,12 @@ class Resizer {
      */
     public tempSiblingsWidth: Array<Cell>;
 
+    /**
+     * Reference to ResizeObserver, which allows running 'unobserve'.
+     * @internal
+     */
+    private resizeObserver?: ResizeObserver;
+
     /* *
      *
      *  Functions
@@ -176,26 +180,24 @@ class Resizer {
     /**
      * Add Snap - create snaps and add events.
      *
-     * @param {Resizer.Options} options
-     * Reference to options of snaps
-     *
      */
-    public addSnaps(options: Resizer.Options): void {
-        const minWidth = options.styles.minWidth;
-        const minHeight = options.styles.minHeight;
+    public addSnaps(): void {
+        const iconsURLPrefix = this.editMode.iconsURLPrefix;
         const snapWidth = this.options.snap.width || 0;
         const snapHeight = this.options.snap.height || 0;
         const dashboardContainer = this.editMode.board.container;
 
         // Right snap
         this.snapRight = createElement(
-            'div',
+            'img',
             {
                 className: EditGlobals.classNames.resizeSnap + ' ' +
-                    EditGlobals.classNames.resizeSnapX
+                    EditGlobals.classNames.resizeSnapX,
+                src: iconsURLPrefix + 'resize-handle.svg'
             },
             {
                 width: snapWidth + 'px',
+                height: snapHeight + 'px',
                 left: -9999 + 'px'
             },
             dashboardContainer
@@ -203,12 +205,14 @@ class Resizer {
 
         // Bottom snap
         this.snapBottom = createElement(
-            'div',
+            'img',
             {
                 className: EditGlobals.classNames.resizeSnap + ' ' +
-                    EditGlobals.classNames.resizeSnapY
+                    EditGlobals.classNames.resizeSnapY,
+                src: iconsURLPrefix + 'resize-handle.svg'
             },
             {
+                width: snapWidth + 'px',
                 height: snapHeight + 'px',
                 top: -9999 + 'px',
                 left: '0px'
@@ -285,32 +289,23 @@ class Resizer {
         const currentCell = this.currentCell;
 
         if (currentCell) {
-            const currentRwdMode = this.editMode.rwdMode,
-                cellOffsets = GUIElement.getOffsets(currentCell),
+            const cellOffsets = GUIElement.getOffsets(currentCell),
                 rowLevelInfo = currentCell.row.getRowLevelInfo(cellOffsets.top),
                 rowLevelCells =
                     (rowLevelInfo && rowLevelInfo.rowLevel.cells) || [];
 
-            let cellContainer, cell, optionsWidth;
+            let cellContainer, cell;
 
             for (let i = 0, iEnd = rowLevelCells.length; i < iEnd; ++i) {
                 cell = rowLevelCells[i];
                 cellContainer = cell.container;
-                optionsWidth = pick(
-                    ((cell.options.responsive || {})[currentRwdMode] || {})
-                        .width,
-                    cell.options.width
-                );
 
                 // Do not convert width on the current cell and next siblings.
                 if (cell === currentCell) {
                     break;
                 }
 
-                if (
-                    cellContainer &&
-                    (!optionsWidth || optionsWidth === 'auto')
-                ) {
+                if (cellContainer) {
                     cellContainer.style.flex =
                         '0 0 ' + cellContainer.offsetWidth + 'px';
                     this.tempSiblingsWidth.push(cell);
@@ -373,9 +368,7 @@ class Resizer {
             resizer.startX = e.clientX;
         };
 
-        resizer.mouseDownSnapY = mouseDownSnapY = function (
-            e: PointerEvent
-        ): void {
+        resizer.mouseDownSnapY = mouseDownSnapY = function (): void {
             resizer.isActive = true;
             resizer.currentDimension = 'y';
             resizer.editMode.hideToolbars(['row', 'cell']);
@@ -391,9 +384,7 @@ class Resizer {
             }
         };
 
-        resizer.mouseUpSnap = mouseUpSnap = function (
-            e: PointerEvent
-        ): void {
+        resizer.mouseUpSnap = mouseUpSnap = function (): void {
             if (resizer.isActive) {
                 resizer.isActive = false;
                 resizer.currentDimension = void 0;
@@ -416,22 +407,27 @@ class Resizer {
         addEvent(document, 'mouseup', mouseUpSnap);
 
         // Touch events
-        // if (hasTouch) {
-        //     addEvent(snapX, 'touchstart', mouseDownSnapX);
-        //     addEvent(snapY, 'touchstart', mouseDownSnapY);
+        // addEvent(snapX, 'touchstart', mouseDownSnapX);
+        // addEvent(snapY, 'touchstart', mouseDownSnapY);
 
-        //     if (!rowContainer.hcEvents.mousemove) {
-        //         addEvent(rowContainer, 'touchmove', mouseMoveSnap);
-        //         addEvent(rowContainer, 'touchend', mouseUpSnap);
-        //     }
+        // if (!rowContainer.hcEvents.mousemove) {
+        //     addEvent(rowContainer, 'touchmove', mouseMoveSnap);
+        //     addEvent(rowContainer, 'touchend', mouseUpSnap);
         // }
 
-        // Update snaps, when resize the window
-        addEvent(window, 'resize', (): void => {
+        const runReflow = (): void => {
             if (resizer.currentCell) {
                 resizer.setSnapPositions(resizer.currentCell);
             }
-        });
+        };
+
+        if (typeof ResizeObserver === 'function') {
+            this.resizeObserver = new ResizeObserver(runReflow);
+            this.resizeObserver.observe(resizer.editMode.board.container);
+        } else {
+            const unbind = addEvent(window, 'resize', runReflow);
+            addEvent(this, 'destroy', unbind);
+        }
     }
     /**
      * General method used on resizing.
@@ -444,8 +440,6 @@ class Resizer {
         const currentCell = this.currentCell as Resizer.ResizedCell;
         const cellContainer = currentCell && currentCell.container;
         const currentDimension = this.currentDimension;
-        const sidebar = this.editMode.sidebar;
-        const currentRwdMode = sidebar && sidebar.editMode.rwdMode;
 
         if (
             currentCell &&
@@ -466,14 +460,12 @@ class Resizer {
                     '%';
 
                 currentCell.setSize(newWidth);
-                currentCell.updateSize(newWidth, currentRwdMode);
-
                 this.startX = e.clientX;
             }
 
             // Resize height
             if (currentDimension === 'y') {
-                cellContainer.style.height = e.clientY - cellOffsets.top + 'px';
+                currentCell.setSize(void 0, e.clientY - cellOffsets.top);
             }
             // Call cellResize dashboard event.
             fireEvent(this.editMode.board, 'cellResize', {
@@ -498,6 +490,8 @@ class Resizer {
         // Unbind events
         removeEvent(document, 'mousemove');
         removeEvent(document, 'mouseup');
+
+        this.resizeObserver?.unobserve(this.editMode.board.container);
 
         for (let i = 0, iEnd = snaps.length; i < iEnd; ++i) {
             snap = (this as any)[snaps[i]];
@@ -622,6 +616,7 @@ namespace Resizer {
         height?: number;
     }
 
+    /** @internal */
     export interface HTMLDOMElementEvents extends HTMLDOMElement {
         hcEvents: Record<string, Array<Function>>;
     }

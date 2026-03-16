@@ -79,6 +79,7 @@
     border-radius: 0.3rem;
     padding: 5px;
     width: 100%;
+    font-weight: 600;
 }
 
 .highcharts-popup-lhs-col,
@@ -399,8 +400,6 @@ input.highcharts-input-search-indicators {
 .highcharts-popup-color-wrapper .highcharts-popup-field-text {
     padding: 5px 8px;
     border: none;
-    font-weight: 600;
-    color: var(--highcharts-neutral-color-80, #333333);
 }
 
 .highcharts-popup-color-wrapper .highcharts-popup-color-separator {
@@ -412,8 +411,6 @@ input.highcharts-input-search-indicators {
 .highcharts-popup-color-wrapper .highcharts-popup-opacity-percentage {
     width: 48px;
     border: none;
-    font-weight: 600;
-    color: var(--highcharts-neutral-color-80, #333333);
     text-align: right;
     appearance: none;
     -moz-appearance: textfield;

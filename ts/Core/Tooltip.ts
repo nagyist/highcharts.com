@@ -883,6 +883,14 @@ class Tooltip {
             swap();
         }
         run();
+
+        // When outside, return chart-relative coordinates so updatePosition can
+        // add the chart offset once. This avoids double-adding when positioner
+        // returns getPosition and container has margin (#16944, #23850).
+        if (outside) {
+            ret.x -= chartPosition.left;
+            ret.y -= chartPosition.top;
+        }
         return ret;
 
     }
@@ -1954,12 +1962,10 @@ class Tooltip {
         // Renderer only exists when tooltip is outside.
         if (renderer && container) {
             // Corrects positions, occurs with tooltip positioner (#16944)
-            if (positioner || fixed) {
-                const { scrollLeft = 0, scrollTop = 0 } = chart
-                    .scrollablePlotArea?.scrollingContainer || {};
-                pos.x += scrollLeft + left - distance;
-                pos.y += scrollTop + top - distance;
-            }
+            const { scrollLeft = 0, scrollTop = 0 } = chart
+                .scrollablePlotArea?.scrollingContainer || {};
+            pos.x += scrollLeft + left - distance;
+            pos.y += scrollTop + top - distance;
 
             // Pad it by the border width and distance. Add 2 to make room for
             // the default shadow (#19314).

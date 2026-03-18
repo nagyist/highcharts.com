@@ -1,13 +1,7 @@
 @import url("https://www.highcharts.com/blog/wp-content/cache/autoptimize/css/autoptimize_76cb24ea25c1883cf1b2c77147552bb5.css");
-@import url("https://code.highcharts.com/css/highcharts.css");
-@import url("https://code.highcharts.com/dashboards/css/dashboards.css");
-@import url("https://cdn.jsdelivr.net/npm/@highcharts/grid-pro/css/grid-pro.css");
 
 :root,
 .highcharts-light {
-    --accounting-color-0: #4689eb;
-    --accounting-color-1: #949494;
-    --accounting-prediction-color: #d36f00;
     --data-label-text-0: #fff;
     --data-label-text-1000: var(--text-primary);
     --text-primary: var(--primitives-neutral-900);
@@ -17,13 +11,14 @@
     --demo-preview-background: var(--primitives-neutral-0);
     --button-group-container-border-outer: var(--primitives-neutral-100);
     --button-group-container-background: var(--primitives-neutral-50);
-    --demo-container: var(--primitives-neutral-50);
     --background: var(--primitives-neutral-0);
     --border-100: var(--primitives-neutral-100);
     --tooltip-border-color: var(--primitives-neutral-100);
     --tick-stroke-color: var(--primitives-neutral-200);
     --tooltip-background: var(--primitives-neutral-50);
     --tooltip-stroke: var(--primitives-neutral-100);
+    --input-border-color: var(--primitives-neutral-300);
+    --input-background: var(--primitives-neutral-50);
 }
 
 .highcharts-dark {
@@ -60,15 +55,12 @@
     --text-secondary: var(--primitives-neutral-200);
     --text-tertiary: var(--primitives-neutral-400);
     --border-100: var(--primitives-neutral-700);
-    --demo-container: var(--primitives-neutral-900);
     --data-label-text-0: #fff;
     --data-label-text-1000: #fff;
     --tooltip-border-color: var(--primitives-neutral-700);
     --tick-stroke-color: var(--primitives-neutral-700);
     --tooltip-background: var(--primitives-neutral-800);
     --tooltip-stroke: var(--primitives-neutral-700);
-    --accounting-color-1: #7c7c7c;
-    --accounting-prediction-color: #debd5b;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -112,8 +104,6 @@
         --tick-stroke-color: var(--primitives-neutral-700);
         --tooltip-background: var(--primitives-neutral-800);
         --tooltip-stroke: var(--primitives-neutral-700);
-        --accounting-color-1: #7c7c7c;
-        --accounting-prediction-color: #debd5b;
     }
 }
 
@@ -121,6 +111,10 @@
 ::before,
 ::after {
     box-sizing: border-box;
+}
+
+a {
+    color: black;
 }
 
 #demo-content {
@@ -170,9 +164,9 @@ body {
     border: 1px solid var(--border-100);
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    max-width: 700px;
     overflow: hidden;
     width: 100%;
-    min-height: 600px;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -215,12 +209,15 @@ body {
 #made-with {
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    gap: 4px;
 }
 
 .made-label {
     font-size: 10px;
     font-weight: 500;
     text-transform: uppercase;
+    text-align: center;
 }
 
 #productButtons {
@@ -231,28 +228,19 @@ body {
 #chart-wrapper {
     position: relative;
     display: flex;
+    flex-direction: column;
+    gap: 12px;
     padding: 12px;
-    overflow: hidden;
     width: 100%;
     margin: 0 auto;
     text-align: center;
-    background-color: var(--demo-container);
-    max-height: 600px;
-}
-
-.chart-inner {
-    width: 100%;
-}
-
-#chart-wrapper.large,
-#chart-wrapper.small {
-    justify-content: center;
+    background-color: var(--background);
+    height: 420px;
 }
 
 #container {
+    height: 420px;
     width: 100%;
-    height: 500px;
-    overflow-y: auto;
 }
 
 .demo-body {
@@ -436,459 +424,104 @@ body {
     color: var(--button-colors-white-text-pressed);
 }
 
-/* Dashboards */
-
-/* accounting */
-
-.accounting .highcharts-color-0 {
-    fill: var(--accounting-color-0);
-    stroke: var(--accounting-color-0);
+#more-demos {
+    display: "";
 }
 
-.accounting .highcharts-color-1 {
-    fill: var(--accounting-color-1);
-    stroke: var(--accounting-color-1);
-}
+/* charts */
 
-.accounting .demo-prediction-color {
-    fill: var(--accounting-prediction-color);
-    stroke: var(--accounting-prediction-color);
-}
-
-#container.accounting {
-    container: dashboard / inline-size;
-}
-
-.accounting .highcharts-dashboards-component-title {
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-top: 48px;
-    margin-bottom: 8px;
-    color: var(--highcharts-neutral-color-100);
-}
-
-.accounting .highcharts-dashboards-component-subtitle {
-    font-weight: 100;
-    color: var(--highcharts-neutral-color-60);
-}
-
-.accounting .highcharts-dashboards-component-kpi-value {
-    font-size: 1.5rem;
-    font-weight: 600;
-}
-
-.accounting #rev-chart-kpi,
-.accounting #cost-chart-kpi,
-.accounting #res-chart-kpi {
-    flex-basis: 25%;
-    height: 185px;
-}
-
-.accounting #rev-chart-kpi .highcharts-dashboards-component-kpi-value,
-.accounting #cost-chart-kpi .highcharts-dashboards-component-kpi-value,
-.accounting #res-chart-kpi .highcharts-dashboards-component-kpi-value {
+.ms .highcharts-stocktools-wrapper {
     display: none;
 }
 
-.accounting #rev-chart-kpi .highcharts-dashboards-component-caption,
-.accounting #cost-chart-kpi .highcharts-dashboards-component-caption,
-.accounting #res-chart-kpi .highcharts-dashboards-component-caption {
-    padding-bottom: 10px;
-    font-size: 12px;
-    color: #aaa;
+.highcharts-tooltip {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
-@container dashboard (max-width: 992px) {
-    #rev-chart,
-    #cost-chart,
-    #stock-cell {
-        flex-basis: 100%;
+highcharts-tooltip-box {
+    fill: var(--tooltip-background) !important;
+
+    /* stroke: var(--tooltip-stroke) !important; */
+}
+
+.highcharts-axis-labels {
+    fill: var(--text-tertiary);
+    cursor: default;
+    font-size: 0.7em;
+}
+
+.highcharts-axis-line {
+    fill: none;
+    stroke: var(--text-tertiary);
+}
+
+.highcharts-tick {
+    stroke: var(--tick-stroke-color);
+    stroke-width: 0.5px;
+}
+
+.highcharts-title,
+.highcharts-subtitle {
+    display: none;
+}
+
+#selectors-container {
+    display: none;
+    gap: 20px;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+#selectors-container select {
+    padding: 4px 8px;
+    border-radius: 4px;
+    max-width: 240px;
+    border: 1px solid var(--input-border-color);
+    background-color: var(--input-background);
+    color: var(--text-secondary);
+}
+
+@media (min-width: 400px) {
+    #made-with {
+        justify-content: start;
     }
-}
 
-@container dashboard (max-width: 576px) {
-    #rev-chart-kpi,
-    #cost-chart-kpi,
-    #res-chart-kpi {
-        flex-basis: 100%;
+    .made-label {
+        text-align: left;
     }
-}
-
-/* Highcharts */
-.accounting .highcharts-gauge-chart {
-    max-height: 185px;
-}
-
-.accounting .highcharts-gauge-chart .highcharts-grid-line {
-    stroke-width: 0;
-}
-
-.accounting .highcharts-gauge-chart .highcharts-title {
-    font-size: 0.8rem;
-}
-
-.accounting .highcharts-data-label-box {
-    display: none;
-}
-
-.accounting .highcharts-gauge-series .highcharts-data-label text {
-    font-size: 1em;
-}
-
-.accounting .highcharts-gauge-series .highcharts-pivot,
-.accounting .highcharts-gauge-series .highcharts-dial {
-    fill: var(--highcharts-neutral-color-60);
-    stroke: var(--highcharts-neutral-color-60);
-}
-
-.accounting .highcharts-plot-band {
-    fill-opacity: 1;
-}
-
-.accounting .highcharts-plot-band.null-band {
-    fill: var(--highcharts-neutral-color-20);
-}
-
-.accounting .highcharts-plot-band.warn-band {
-    fill: #ffa92e;
-}
-
-.accounting .highcharts-plot-band.opt-band {
-    fill: #a2efbb;
-}
-
-.accounting .highcharts-plot-band.high-band {
-    fill: #8383e5;
-}
-
-.accounting .highcharts-plot-line-label {
-    fill: var(--highcharts-neutral-color-60);
-}
-
-.accounting .highcharts-stock-chart .highcharts-color-1,
-.accounting .highcharts-stock-chart .highcharts-color-2 {
-    fill: var(--accounting-prediction-color);
-    stroke: var(--accounting-prediction-color);
-    stroke-dasharray: 1px 6px;
-}
-
-/* Custom */
-
-.accounting .year-plotline {
-    stroke-dasharray: 5px 3px;
-    stroke: #a0a0a080;
-}
-
-#csv {
-    display: none;
 }
 
 @media (max-width: 500px) {
+    #chart-wrapper.large {
+        justify-content: flex-start;
+    }
+
     .demo-footer {
         flex-direction: column;
     }
-}
 
-/* Investing dashboard custom styles */
-
-.investing .highcharts-color-0,
-.investing .highcharts-solidgauge-series.highcharts-color-0 path.highcharts-point {
-    fill: #c963ff !important;
-    stroke: #c963ff !important;
-}
-
-.investing .highcharts-color-1 {
-    fill: #30cbea !important;
-    stroke: #30cbea !important;
-}
-
-.investing .dotted-line {
-    stroke-dasharray: 2, 12;
-}
-
-.investing .highcharts-gauge-chart .highcharts-grid-line {
-    stroke-width: 0;
-}
-
-.investing .highcharts-solidgauge-series.highcharts-color-0 path.highcharts-point {
-    fill: var(--highcharts-color-0);
-}
-
-.investing .highcharts-grid-table {
-    border: 0;
-}
-
-.investing #kpi-gauge-risk {
-    flex: 0 1 37.5%;
-}
-
-.investing.highcharts-yaxis .highcharts-tick {
-    stroke-width: 4px;
-    stroke: var(--highcharts-background-color);
-}
-
-.investing .highcharts-radial-axis-grid {
-    stroke-width: 0;
-}
-
-.investing.highcharts-dashboards-component-kpi-value {
-    font-size: 1.8rem;
-    font-weight: 600;
-}
-
-.investing .highcharts-dashboards-component-title {
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.investing .highcharts-grid-table tbody td {
-    padding-left: 14px;
-}
-
-.investing #goal-analysis-wrapper .highcharts-dashboards-component-title {
-    margin-top: 48px;
-    margin-bottom: 8px;
-    color: var(--highcharts-neutral-color-100);
-}
-
-.investing #goal-analysis-wrapper .highcharts-dashboards-component-subtitle {
-    font-weight: 100;
-    color: var(--highcharts-neutral-color-60);
-}
-
-.investing #kpi-wrapper .highcharts-dashboards-component-title {
-    margin-top: 20px;
-}
-
-.investing #kpi-gauge-risk .highcharts-dashboards-component-kpi-value,
-.investing #kpi-gauge-goal .highcharts-dashboards-component-kpi-value,
-.investing .highcharts-data-label-box {
-    display: none;
-}
-
-.investing #wallet-chart .highcharts-point {
-    fill: none;
-    stroke: none;
-}
-
-.investing .hidden-title .highcharts-title {
-    display: none;
-}
-
-@media (max-width: 800px) {
-    .investing #grid,
-    .investing #kpi-gauge-risk {
-        flex: 1 1 100%;
-    }
-
-    .investing #kpi-goal-target,
-    .investing #kpi-goal-years,
-    .investing #kpi-goal-annual,
-    .investing #kpi-gauge-goal {
-        flex: 1 1 50%;
-        height: 186px;
+    .demo-header {
+        padding: 12px 16px;
+        gap: 12px;
     }
 }
 
-@media (max-width: 500px) {
-    .investing .highcharts-dashboards-component-kpi-value {
-        font-size: 1.2rem;
+@media (max-width: 400px) {
+    .demo-header {
+        flex-direction: column;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .demo-title {
+        width: 100%;
+        align-items: center;
+        text-align: center;
     }
 }
 
-/* personal finance */
-
-/* Colors */
-:root {
-    --highcharts-dashboards-green: #20d17e;
-    --highcharts-dashboards-orange: #feaa61;
-    --highcharts-dashboards-green-transparent: #20d17e30;
-}
-
-/* General */
-.finance .highcharts-dashboards,
-.finance .highcharts-dashboards-wrapper {
-    background-color: var(--highcharts-neutral-color-3);
-}
-
-/* .highcharts-background {
-    fill: var(--highcharts-background-color);
-} */
-
-.finance .highcharts-color-0 {
-    stroke: var(--highcharts-dashboards-green);
-    fill: var(--highcharts-dashboards-green);
-}
-
-.finance .highcharts-color-1 {
-    stroke: var(--highcharts-dashboards-orange);
-    fill: var(--highcharts-dashboards-orange);
-}
-
-/* Rows and cells */
-.finance .highcharts-dashboards-row#row-1 {
-    border-radius: 20px;
-    padding: 10px;
-}
-
-.finance .highcharts-dashboards-cell > .highcharts-dashboards-component {
-    box-sizing: border-box;
-    background-color: var(--highcharts-background-color);
-    border-radius: 20px;
-    padding: 0;
-    text-align: left;
-}
-
-/* Components general */
-.finance .highcharts-dashboards-component-title {
-    padding-left: 10px;
-    font-size: 0.8rem;
-    font-weight: 100;
-}
-
-.finance .highcharts-dashboards-component-subtitle {
-    font-size: 0.8rem;
-    font-weight: 100;
-    padding-left: 20px;
-    color: var(--highcharts-dashboards-green);
-}
-
-.finance .highcharts-dashboards-component-kpi-value {
-    padding-left: 20px;
-    font-weight: bold;
-}
-
-.finance .highcharts-dashboards-component-html-content {
-    padding: 10px !important;
-}
-
-.finance .highcharts-dashboards-component-html-content h4 {
-    margin: 12px 0;
-}
-
-/* Grid theme */
-
-.finance .hcg-custom-theme {
-    --hcg-padding: 10px;
-    --hcg-row-border-width: 1px;
-    --hcg-header-background: transparent;
-}
-
-/* Components specific */
-.finance #dashboard-row-1-cell-2 .highcharts-dashboards-component-subtitle {
-    color: var(--highcharts-dashboards-orange);
-}
-
-.finance #dashboard-row-1-cell-2 .highcharts-color-0 {
-    stroke: var(--highcharts-dashboards-orange);
-    fill: var(--highcharts-dashboards-orange);
-}
-
-.finance #dashboard-row-1-cell-3 .highcharts-dashboards-component-content {
-    text-align: center;
-}
-
-.finance #dashboard-row-2-cell-1 .highcharts-color-0 .highcharts-area {
-    fill-opacity: 1;
-    fill: url(#gradient-0);
-}
-
-.finance #dashboard-row-3-cell-1 .highcharts-color-0 {
-    stroke: var(--highcharts-dashboards-orange);
-    fill: var(--highcharts-dashboards-orange);
-}
-
-/* Custom classes and ids */
-.finance #saving-button {
-    border: none;
-    border-radius: 10px;
-    padding: 10px 20px;
-    color: #000;
-    background-color: var(--highcharts-dashboards-orange);
-    cursor: pointer;
-}
-
-/* Gradient  */
-.finance #gradient-0 stop {
-    stop-color: var(--highcharts-dashboards-green);
-}
-
-.finance #gradient-0 stop[offset="0"] {
-    stop-opacity: 0.75;
-}
-
-.finance #gradient-0 stop[offset="1"] {
-    stop-opacity: 0;
-}
-
-.finance #dashboard-row-1-cell-1,
-.finance #dashboard-row-1-cell-2,
-.finance #dashboard-row-1-cell-3 {
-    height: 160px;
-}
-
-.finance #dashboard-row-3-cell-1,
-.finance #dashboard-row-3-cell-2,
-.finance #dashboard-row-3-cell-3 {
-    height: 260px;
-}
-
-.finance #dashboard-row-3-cell-1,
-.finance #dashboard-row-3-cell-2 {
-    flex: 1 1 20%;
-}
-
-#dashboard-row-3-cell-3 {
-    flex: 1 1 60%;
-}
-
-/* LARGE */
-@media (max-width: 1200px) {
-    .finance #dashboard-row-1-cell-1,
-    .finance #dashboard-row-1-cell-2,
-    .finance #dashboard-row-1-cell-3 {
-        flex: 1 1 33.333%;
-    }
-
-    .finance #dashboard-row-3-cell-1,
-    .finance #dashboard-row-3-cell-2 {
-        flex: 1 1 20%;
-    }
-
-    .finance #dashboard-row-3-cell-3 {
-        flex: 1 1 60%;
-    }
-}
-
-/* MEDIUM */
-@media (max-width: 992px) {
-    .finance #dashboard-row-1-cell-1,
-    .finance #dashboard-row-1-cell-2,
-    .finance #dashboard-row-1-cell-3 {
-        flex: 1 1 50%;
-    }
-
-    .finance #dashboard-row-3-cell-1,
-    .finance #dashboard-row-3-cell-2 {
-        flex: 1 1 50%;
-    }
-
-    .finance #dashboard-row-3-cell-3 {
-        flex: 1 1 100%;
-    }
-}
-
-/* SMALL */
-@media (max-width: 576px) {
-    .finance #dashboard-row-1-cell-1,
-    .finance #dashboard-row-1-cell-2,
-    .finance #dashboard-row-1-cell-3 {
-        flex: 1 1 50%;
-    }
-
-    .finance #dashboard-row-3-cell-1,
-    .finance #dashboard-row-3-cell-2,
-    .finance #dashboard-row-3-cell-3 {
-        flex: 1 1 100%;
+@media (max-width: 380px) {
+    #more-demos {
+        display: none;
     }
 }

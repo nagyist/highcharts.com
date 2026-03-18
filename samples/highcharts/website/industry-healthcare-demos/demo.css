@@ -227,23 +227,25 @@ body {
     gap: 4px;
 }
 
+h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 130%;
+}
+
 #chart-wrapper {
     position: relative;
     display: flex;
     padding: 12px;
-    overflow-x: auto;
     width: 100%;
     margin: 0 auto;
     text-align: center;
     background-color: var(--background);
-    min-height: 400px;
-    max-height: 400px;
+    height: 420px;
 }
 
 #container {
-    /* max-width: 500px;
-    max-height: 400px; */
-
+    height: 420px;
     width: 100%;
 }
 

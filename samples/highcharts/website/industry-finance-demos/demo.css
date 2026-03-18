@@ -467,6 +467,7 @@ highcharts-tooltip-box {
 
 #selectors-container {
     display: none;
+    flex-direction: row;
     gap: 20px;
     font-size: 14px;
     color: var(--text-secondary);
@@ -479,6 +480,12 @@ highcharts-tooltip-box {
     border: 1px solid var(--input-border-color);
     background-color: var(--input-background);
     color: var(--text-secondary);
+}
+
+@media (max-width: 540px) {
+    #selectors-container {
+        flex-direction: column;
+    }
 }
 
 @media (min-width: 400px) {

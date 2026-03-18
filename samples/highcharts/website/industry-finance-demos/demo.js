@@ -1243,7 +1243,7 @@ function customization() {
                     },
                     chartOptions: {
                         chart: {
-                            height: '120%'
+                            height: '100%'
                         },
                         plotOptions: {
                             variablepie: {
@@ -1404,6 +1404,9 @@ const charts = {
 };
 
 Highcharts.setOptions({
+    chart: {
+        height: 400
+    },
     credits: {
         enabled: false
     },

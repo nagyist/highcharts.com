@@ -1,4 +1,6 @@
 @import url("https://www.highcharts.com/blog/wp-content/cache/autoptimize/css/autoptimize_76cb24ea25c1883cf1b2c77147552bb5.css");
+@import url("https://cdn.jsdelivr.net/npm/@highcharts/grid-pro/css/grid-pro.css");
+@import url("https://code.highcharts.com/dashboards/css/dashboards.css");
 
 :root,
 .highcharts-light {
@@ -558,7 +560,9 @@ body {
 }
 
 #ld-form {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     font-size: 14px;
     justify-content: space-between;
 }
@@ -569,14 +573,21 @@ body {
 
 #ld-form .ld-left {
     display: flex;
-    flex-direction: column;
-    align-items: start;
+    flex-direction: row;
+    justify-content: start;
 }
 
 #ld-form .ld-right {
     display: flex;
-    flex-direction: column;
-    justify-content: end;
+    flex-direction: row;
+    align-items: start;
+}
+
+#ld-form .ld-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
 }
 
 #ld-form .ld-left input {
@@ -616,6 +627,27 @@ highcharts-tooltip-box {
 .highcharts-title,
 .highcharts-subtitle {
     display: none;
+}
+
+.status {
+    border-radius: 10px;
+    padding: 4px 8px;
+    width: min-content;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    color: #fff;
+}
+
+.running {
+    background-color: #4caf5080;
+}
+
+.stopped {
+    background-color: #f4433680;
+}
+
+.spark-label {
+    color: var(--hcg-color);
 }
 
 @media (min-width: 400px) {

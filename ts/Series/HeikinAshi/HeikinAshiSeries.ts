@@ -49,9 +49,8 @@ function onAxisPostProcessData(
 
     series.forEach((series): void => {
         if (series.is('heikinashi')) {
-            const heikinashiSeries = series as HeikinAshiSeries;
-            heikinashiSeries.heikiashiData.length = 0;
-            heikinashiSeries.getHeikinashiData();
+            series.heikiashiData.length = 0;
+            series.getHeikinashiData();
         }
     });
 }

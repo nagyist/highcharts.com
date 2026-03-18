@@ -862,7 +862,9 @@ class Series {
      * @return {boolean}
      *        True if this item is or inherits from the given type.
      */
-    public is(type: string): boolean {
+    public is<K extends keyof typeof seriesTypes>(
+        type: K
+    ): this is InstanceType<typeof seriesTypes[K]> {
         return seriesTypes[type] && this instanceof seriesTypes[type];
     }
 

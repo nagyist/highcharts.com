@@ -317,13 +317,11 @@ namespace ForcedMarkersComposition {
      * @private
      */
     function destroyPointMarkerGraphics(series: SeriesComposition): void {
-        if (series.points) {
-            series.points.forEach((point): void => {
-                if (point.graphic) {
-                    point.graphic = point.graphic.destroy();
-                }
-            });
-        }
+        series.points?.forEach((point): void => {
+            if (point.graphic) {
+                point.graphic = point.graphic.destroy();
+            }
+        });
     }
 
 

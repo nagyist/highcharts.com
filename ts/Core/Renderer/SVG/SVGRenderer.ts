@@ -1008,7 +1008,7 @@ class SVGRenderer implements SVGRendererBase {
      *
      * @function Highcharts.SVGRenderer#path
      *
-     * @param {Highcharts.SVGAttributes|Highcharts.SVGPath} [path]
+     * @param {Highcharts.SVGAttributes|Highcharts.SVGPathArray} [path]
      * The initial attributes.
      *
      * @return {Highcharts.SVGElement}

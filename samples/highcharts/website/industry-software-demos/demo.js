@@ -1577,7 +1577,7 @@ function activity() {
 
     (async () => {
         const weeks = await fetch(
-            'https://cdn.jsdelivr.net/gh/highcharts/highcharts@4dc715c/samples/data/github_commit_activity.json'
+            'https://cdn.jsdelivr.net/gh/highcharts/highcharts@4dc715c/samples/data/github-commit-activity.json'
 
 
         ).then(res => res.json());

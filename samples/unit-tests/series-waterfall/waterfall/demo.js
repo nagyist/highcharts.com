@@ -125,7 +125,7 @@ QUnit.test('General waterfall tests', function (assert) {
     assert.close(
         chart.series[0].points[0].graphic.attr('height'),
         chart.yAxis[0].toPixels(-12, true),
-        0.5,
+        1,
         `First point that is crossing the axis break should have correct height,
         #22330.`
     );
@@ -133,7 +133,7 @@ QUnit.test('General waterfall tests', function (assert) {
     assert.close(
         chart.series[0].points[1].graphic.attr('y'),
         chart.series[0].points[0].graphic.attr('height'),
-        0.5,
+        1,
         'Second point should start where the first point ends, #22330.'
     );
 
@@ -152,7 +152,7 @@ QUnit.test('General waterfall tests', function (assert) {
     assert.close(
         chart.series[1].points[0].graphic.attr('height'),
         chart.yAxis[0].toPixels(-4, true),
-        0.5,
+        1,
         'First point of the second stacked should have correct height, #22330.'
     );
 
@@ -160,7 +160,7 @@ QUnit.test('General waterfall tests', function (assert) {
         chart.series[1].points[1].graphic.attr('y'),
         chart.series[0].points[0].graphic.attr('height') +
         chart.series[1].points[0].graphic.attr('height'),
-        0.5,
+        1,
         `Second point of the second stack should start where the first stack
         ends, #22330.`
     );

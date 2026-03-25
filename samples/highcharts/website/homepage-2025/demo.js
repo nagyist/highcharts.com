@@ -1358,7 +1358,7 @@ function stockWithAnnotations() {
                     className: 'events-annotations',
                     labels: [
                         {
-                            allowOverlap: true,
+                            allowOverlap: false,
                             point: {
                                 xAxis: 0,
                                 yAxis: 0,

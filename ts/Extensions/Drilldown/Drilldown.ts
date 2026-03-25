@@ -55,6 +55,7 @@ import {
     diffObjects,
     defined,
     extend,
+    pick,
     merge,
     objectEach,
     syncTimeout,
@@ -539,7 +540,8 @@ class ChartAdditions {
         }
 
         ddOptions = extend(extend<SeriesOptions>({
-            _ddSeriesId: ddSeriesId++
+            _ddSeriesId: ddSeriesId++,
+            _levelNumber: levelNumber + 1
         }, colorProp), ddOptions);
 
         let levelSeries: Array<Series> = [],
@@ -560,6 +562,10 @@ class ChartAdditions {
                 series.options.colorIndex = series.colorIndex;
                 series.options._levelNumber =
                     series.options._levelNumber || levelNumber; // #3182
+                series.userOptions._levelNumber = (
+                    series.userOptions._levelNumber ||
+                    series.options._levelNumber
+                );
 
                 if (last) {
                     levelSeries = last.levelSeries;
@@ -587,6 +593,7 @@ class ChartAdditions {
         // Crate the new series
         const newSeries = chart.addSeries(ddOptions, false);
         newSeries.options._levelNumber = levelNumber + 1;
+        newSeries.userOptions._levelNumber = levelNumber + 1;
         if (xAxis) {
             xAxis.userMin = xAxis.userMax = void 0;
             yAxis.userMin = yAxis.userMax = void 0;
@@ -665,12 +672,16 @@ class ChartAdditions {
 
                 if (level.levelNumber === levelToRemove) {
                     level.levelSeries.forEach((series): void => {
+                        const levelNumber = pick(
+                            series.options._levelNumber,
+                            series.userOptions._levelNumber
+                        );
                         // Not removed, not added as part of a multi-series
                         // drilldown
                         if (!chart.mapView) {
                             if (
                                 series.options &&
-                                series.options._levelNumber === levelToRemove
+                                levelNumber === levelToRemove
                             ) {
                                 series.remove(false);
                             }
@@ -679,8 +690,7 @@ class ChartAdditions {
                         // after zooming into
                         } else if (
                             series.options &&
-                            series.options._levelNumber === levelToRemove &&
-                            series.group
+                            levelNumber === levelToRemove
                         ) {
                             let animOptions: (
                                 boolean|Partial<AnimationOptions>|undefined
@@ -689,13 +699,19 @@ class ChartAdditions {
                             if (drilldownOptions) {
                                 animOptions = drilldownOptions.animation;
                             }
+                            const drillAnimOptions =
+                                animObject(animOptions);
 
-                            series.group.animate({
-                                opacity: 0
-                            },
-                            animOptions,
-                            (): void => {
-                                series.remove(false);
+                            let seriesRemoved = false;
+                            const removeSeries = (): void => {
+                                if (seriesRemoved) {
+                                    return;
+                                }
+                                seriesRemoved = true;
+
+                                if (series.chart) {
+                                    series.remove(false);
+                                }
                                 // If it is the last series
                                 if (
                                     !(level.levelSeries.filter(
@@ -726,7 +742,27 @@ class ChartAdditions {
                                     }
                                     fireEvent(chart, 'afterApplyDrilldown');
                                 }
-                            });
+                            };
+
+                            if (series.group) {
+                                series.group.animate(
+                                    {
+                                        opacity: 0
+                                    },
+                                    animOptions,
+                                    removeSeries
+                                );
+
+                                // If another redraw interrupts the animation,
+                                // ensure the old series is still removed.
+                                syncTimeout(
+                                    removeSeries,
+                                    drillAnimOptions.defer +
+                                    drillAnimOptions.duration
+                                );
+                            } else {
+                                removeSeries();
+                            }
                         }
                     });
                 }
@@ -860,7 +896,10 @@ class ChartAdditions {
                         if (
                             chartSeries[seriesI].options.id ===
                                 level.lowerSeriesOptions.id &&
-                            chartSeries[seriesI].options._levelNumber ===
+                            pick(
+                                chartSeries[seriesI].options._levelNumber,
+                                chartSeries[seriesI].userOptions._levelNumber
+                            ) ===
                                 levelNumber + 1
                         ) { // #3867
                             oldSeries = chartSeries[seriesI];
@@ -909,6 +948,7 @@ class ChartAdditions {
                         }
                     }
                     newSeries.options._levelNumber = levelNumber;
+                    newSeries.userOptions._levelNumber = levelNumber;
                 }
 
                 const seriesToRemove = oldSeries;

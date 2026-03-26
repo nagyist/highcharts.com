@@ -1925,7 +1925,7 @@ export class Exporting {
             const exporting = chartCopy.exporting;
 
             // Prepare shadow DOM styles
-            if (exporting?.options.includeShadowDOMStyles) {
+            if (exporting?.options.applyStyleSheets) {
                 this.applyShadowDOMStyles(chartCopy);
             }
 

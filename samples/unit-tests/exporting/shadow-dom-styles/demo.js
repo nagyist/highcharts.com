@@ -25,8 +25,7 @@ QUnit.test('Shadow DOM CSS styles', function (assert) {
             text: 'Shadow DOM CSS styles'
         },
         exporting: {
-            applyStyleSheets: true,
-            includeShadowDOMStyles: true
+            applyStyleSheets: true
         },
         series: [
             {

@@ -94,7 +94,7 @@ export function error(
         // Else ...
         if (
             win.console &&
-            error.messages.indexOf(message) === -1 // Prevent console flooting
+            error.messages.indexOf(message) === -1 // Prevent console floating
         ) {
             console.warn(message); // eslint-disable-line no-console
         }
@@ -460,7 +460,7 @@ export interface ErrorMessageEventObject {
  * @name Highcharts.CSSObject#padding
  * @type {string|undefined}
  *//**
- * Behaviour of the element when the mouse cursor rests over it.
+ * Behavior of the element when the mouse cursor rests over it.
  * @name Highcharts.CSSObject#pointerEvents
  * @type {string|undefined}
  *//**

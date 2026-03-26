@@ -1749,7 +1749,7 @@ class Navigator {
 
                 // Once nav series type is resolved, pick correct pointRange
                 mergedNavSeriesOptions.pointRange = pick(
-                    // Stricte set pointRange in options
+                    // Strictly set pointRange in options
                     userNavOptions.pointRange,
                     baseNavigatorOptions.pointRange,
                     // Fallback to default values, e.g. `null` for column

@@ -675,7 +675,7 @@ class ChartAdditions {
                                 series.remove(false);
                             }
 
-                        // Deal with asonchrynous removing of map series
+                        // Deal with asynchronous removing of map series
                         // after zooming into
                         } else if (
                             series.options &&

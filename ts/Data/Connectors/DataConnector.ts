@@ -347,7 +347,7 @@ abstract class DataConnector implements DataEventEmitter<Event> {
         const tableOptionsArray = this.options?.dataTables;
 
         for (const [key, table] of Object.entries(this.dataTables)) {
-            // Take data modifier options from the corresponsing data table
+            // Take data modifier options from the corresponding data table
             // options, otherwise take the data modifier options from the
             // connector options.
             const dataModifierOptions = tableOptionsArray?.find(

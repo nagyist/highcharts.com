@@ -250,7 +250,7 @@ class SupertrendIndicator extends SMAIndicator {
             // Points offset between lines
             tempOffset: number = mainLinePoints.length - indicPoints.length,
             offset: number = tempOffset > 0 ? tempOffset : 0,
-            // @todo: fix when ichi-moku indicator is merged to master.
+            // @todo: fix when ichimoku indicator is merged to master.
             gappedExtend: SupertrendGappedExtensionObject = {
                 options: {
                     gapSize: indicOptions.gapSize

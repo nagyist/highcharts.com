@@ -4450,7 +4450,7 @@ class Axis {
             }
         );
 
-        // Destroy each generated group for plotlines and plotbands
+        // Destroy each generated group for plotLines and plotBands
         for (const plotGroup in axis.plotLinesAndBandsGroups) { // eslint-disable-line guard-for-in
             axis.plotLinesAndBandsGroups[plotGroup] =
                 axis.plotLinesAndBandsGroups[plotGroup].destroy() as any;

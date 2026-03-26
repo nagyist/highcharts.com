@@ -90,7 +90,7 @@ function applyGrouping(
         if (series.groupPixelWidth) {
             series.hasProcessed = true; // #2692
         }
-        // Fire independing on series.groupPixelWidth to always set a proper
+        // Fire independently on series.groupPixelWidth to always set a proper
         // dataGrouping state, (#16238)
         series.applyGrouping(!!e.hasExtremesChanged);
     });

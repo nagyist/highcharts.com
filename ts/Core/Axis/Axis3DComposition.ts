@@ -130,7 +130,7 @@ function onAxisInit(this: Axis): void {
 }
 
 /**
- * Do not draw axislines in 3D.
+ * Do not draw axis lines in 3D.
  * @internal
  */
 function wrapAxisGetLinePath(

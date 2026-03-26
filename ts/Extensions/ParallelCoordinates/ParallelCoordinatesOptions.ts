@@ -58,7 +58,7 @@ interface ParallelCoordinatesOptions {
      * ```js
      * parallelAxes: {
      *    lineWidth: 1,       // classic mode only
-     *    gridlinesWidth: 0,  // classic mode only
+     *    gridLineWidth: 0,  // classic mode only
      *    title: {
      *        text: '',
      *        reserveSpace: false

@@ -1150,7 +1150,7 @@ class WGLRenderer {
      * If we render the series immediately, we don't have to loop later.
      *
      * @internal
-     * @param {Highchart.Series} s
+     * @param {Highcharts.Series} s
      * The series to push.
      */
     public pushSeries(s: Series): void {

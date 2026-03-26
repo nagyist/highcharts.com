@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -698,7 +698,7 @@ namespace DataLabel {
                 pointOptions = splat(
                     mergeArrays(
                         seriesDlOptions,
-                        // The dlOptions prop is used in treemaps
+                        // The dlOptions prop is used in treemap
                         point.dlOptions || point.options?.dataLabels
                     )
                 );
@@ -710,7 +710,7 @@ namespace DataLabel {
                     dataLabelsGroup =
                         this.initDataLabels(i, animationConfig, labelOptions);
 
-                    // Options for one datalabel
+                    // Options for one dataLabel
                     const labelEnabled = (
                             labelOptions.enabled &&
                             (point.visible || point.dataLabelOnHidden) &&

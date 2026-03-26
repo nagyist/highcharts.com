@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -78,7 +78,7 @@ const CandlestickSeriesDefaults: CandlestickSeriesOptions = {
      * The color of the line/border of the candlestick.
      *
      * In styled mode, the line stroke can be set with the
-     * `.highcharts-candlestick-series .highcahrts-point` rule.
+     * `.highcharts-candlestick-series .highcharts-point` rule.
      *
      * @see [upLineColor](#plotOptions.candlestick.upLineColor)
      *
@@ -95,7 +95,7 @@ const CandlestickSeriesDefaults: CandlestickSeriesOptions = {
      *
      *
      * In styled mode, the line stroke width can be set with the
-     * `.highcharts-candlestick-series .highcahrts-point` rule.
+     * `.highcharts-candlestick-series .highcharts-point` rule.
      *
      * @product highstock
      */

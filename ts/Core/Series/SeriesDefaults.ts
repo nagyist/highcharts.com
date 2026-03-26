@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -555,9 +555,10 @@ const seriesDefaults: PlotOptionsOf<Series> = {
      * Whether or not data-points with the value of `null` should be interactive.
      * When this is set to `true`, tooltips may highlight these points, and this
      * option also enables keyboard navigation for such points. Format options
-     * for such points include [`nullFormat`](#tooltip.nullFormat) and [`nullFormater`](#tooltip.nullFormatter).
-     * Works for these series: `line`, `spline`, `area`, `area-spline`,
-     * `column`, `bar`, and* `timeline`.
+     * for such points include [`nullFormat`](#tooltip.nullFormat) and
+     * [`nullFormatter`](#tooltip.nullFormatter). Works for these series:
+     * `line`, `spline`, `area`, `area-spline`, `column`, `bar`, and
+     * `timeline`.
      *
      * @sample {highcharts} highcharts/series/null-interaction/
      *         Chart with interactive `null` points
@@ -664,7 +665,7 @@ const seriesDefaults: PlotOptionsOf<Series> = {
      * create any padding of the X axis. In a polar column chart this means
      * that the first column points directly north. If the pointPlacement is
      * `"between"`, the columns will be laid out between ticks. This is
-     * useful for example for visualising an amount between two points in
+     * useful for example for visualizing an amount between two points in
      * time or in a certain sector of a polar chart.
      *
      * Since Highcharts 3.0.2, the point placement can also be numeric,
@@ -2003,7 +2004,7 @@ const seriesDefaults: PlotOptionsOf<Series> = {
          * text outline doesn't work well, in which cases it can be disabled
          * by setting it to `"none"`. When `useHTML` is true, the
          * `textOutline` will not be picked up. In this, case, the same
-         * effect can be acheived through the `text-shadow` CSS property.
+         * effect can be achieved through the `text-shadow` CSS property.
          *
          * For some series types, where each point has an extent, like for
          * example tree maps, the data label may overflow the point. There

@@ -59,7 +59,7 @@ import {
 import { error } from '../../Core/Utilities.js';
 
 /**
- * Normalize longitute value to -180:180 range.
+ * Normalize longitude value to -180:180 range.
  * @private
  */
 function normalizeLonValue(lon: number): number {

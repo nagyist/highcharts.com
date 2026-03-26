@@ -288,7 +288,7 @@ const GanttSeriesDefaults: GanttSeriesOptions = {
  * @apioption series.gantt.events
  */
 
-''; // Detachs doclets above
+''; // Keeps doclets above
 
 /* *
  *

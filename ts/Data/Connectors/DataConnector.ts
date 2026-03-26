@@ -10,7 +10,7 @@
  *  - Sophie Bremer
  *  - Wojciech Chmiel
  *  - Gøran Slettemark
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Kamil Kubik
  *
  * */

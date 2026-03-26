@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -175,7 +175,7 @@ class PieSeries extends Series {
 
     /**
      * Called internally to draw auxiliary graph in pie-like series in
-     * situtation when the default graph is not sufficient enough to present
+     * situation when the default graph is not sufficient enough to present
      * the data well. Auxiliary graph is saved in the same object as
      * regular graph.
      * @private

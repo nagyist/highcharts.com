@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -254,7 +254,7 @@ function getConnectors(
         jointAngle: number;
 
     // Calculate final index of points depending on the initial index value.
-    // Because of calculating neighbours, index may be outside segment
+    // Because of calculating neighbors, index may be outside segment
     // array.
     if (index >= 0 && index <= segment.length - 1) {
         i = index;

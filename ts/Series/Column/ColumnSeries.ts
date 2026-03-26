@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -493,10 +493,10 @@ class ColumnSeries extends Series {
         const series = this,
             chart = series.chart,
             options = series.options,
-            // For points whithout graphics (null points) this value is used
+            // For points without graphics (null points) this value is used
             // to reserve space around the point such that:
-            //      - normal/null points are spaced similarily,
-            //      - focusborders of null points are like those of "0" points
+            //      - normal/null points are spaced similarly,
+            //      - focus borders of null points are like those of "0" points
             // This ensures consistent dimensions between null/normal points.
             dense = series.dense =
                 (series.closestPointRange as any) * series.xAxis.transA < 2,
@@ -856,7 +856,7 @@ class ColumnSeries extends Series {
 
                 const point = pointer?.getPointFromEvent(e);
 
-                // Undefined on graph in scatterchart
+                // Undefined on graph in scatter chart
                 if (
                     pointer &&
                     point &&

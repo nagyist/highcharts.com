@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  Extension for 3D charts
  *
@@ -1486,7 +1486,7 @@ namespace Chart3D {
             chart.is3d()
         ) {
 
-            // Add a 0-360 normalisation for alfa and beta angles in 3d graph
+            // Add a 0-360 normalization for alfa and beta angles in 3d graph
             if (options3d) {
                 options3d.alpha = options3d.alpha % 360 +
                     (options3d.alpha >= 0 ? 0 : 360);

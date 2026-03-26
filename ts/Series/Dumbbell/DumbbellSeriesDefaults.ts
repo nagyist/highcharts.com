@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Sebastian Bochan, Rafal Sebestjanski
+ *  Author: Sebastian Bochan, Rafał Sebestjański
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -42,9 +42,8 @@ import { Palette } from '../../Core/Color/Palettes.js';
  *
  * @extends      plotOptions.arearange
  * @product      highcharts highstock
- * @excluding    boostThreshold, boostBlendingfillColor, fillOpacity,
- *               legendSymbolColor, lineWidth, stack, stacking, stickyTracking,
- *               trackByArea
+ * @excluding    boostThreshold, fillOpacity, legendSymbolColor, lineWidth,
+ *               stack, stacking, stickyTracking, trackByArea
  * @since 8.0.0
  * @optionparent plotOptions.dumbbell
  */

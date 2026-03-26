@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -83,7 +83,7 @@ namespace ColumnDataLabel {
         },
 
         // Get the x - use the natural x position for labels near the top and
-        // bottom, to prevent the top and botton slice connectors from touching
+        // bottom, to prevent the top and bottom slice connectors from touching
         // each other on either side. Based on the value computed in Highcharts'
         // distribute algorithm.
         radialDistributionX: function (

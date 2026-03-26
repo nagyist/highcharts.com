@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -428,7 +428,7 @@ class Tooltip {
                 mouseEvent.chartY - plotTop
             ];
 
-        // Some series types use a specificly calculated tooltip position for
+        // Some series types use a specifically calculated tooltip position for
         // each point
         } else if (points[0].tooltipPos) {
             ret = points[0].tooltipPos;

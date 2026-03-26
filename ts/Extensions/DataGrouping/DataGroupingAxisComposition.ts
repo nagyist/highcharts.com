@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -177,7 +177,7 @@ function getGroupPixelWidth(
 
 /**
  * When resetting the scale reset the hasProcessed flag to avoid taking
- * previous data grouping of neighbour series into account when determining
+ * previous data grouping of neighbor series into account when determining
  * group pixel width (#2692).
  * @internal
  */

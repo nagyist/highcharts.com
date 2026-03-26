@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -106,7 +106,7 @@ const PieSeriesDefaults: PlotOptionsOf<PieSeries> = {
 
     /**
      * The center of the pie chart relative to the plot area. Can be
-     * percentages or pixel values. The default behaviour (as of 3.0) is to
+     * percentages or pixel values. The default behavior (as of 3.0) is to
      * center the pie so that all slices and data labels are within the plot
      * area. As a consequence, the pie may actually jump around in a chart
      * with dynamic values, as the data labels move. In that case, the
@@ -246,7 +246,7 @@ const PieSeriesDefaults: PlotOptionsOf<PieSeries> = {
          *   `'center'` (data label overlaps the pie).
          *
          * - An object that holds the information about the position of the
-         *   connector. Its `touchingSliceAt`  porperty tells the position of
+         *   connector. Its `touchingSliceAt` property tells the position of
          *   the place where the connector touches the slice.
          *
          * - Data label options
@@ -287,7 +287,7 @@ const PieSeriesDefaults: PlotOptionsOf<PieSeries> = {
 
         /**
          * Works only if `connectorShape` is `'crookedLine'`. It defines how
-         * far from the vertical plot edge the coonnector path should be
+         * far from the vertical plot edge the connector path should be
          * crooked. With the default, `undefined`, the crook is placed so that
          * the horizontal line from the label intersects with the radial line
          * extending through the center of the pie slice.
@@ -423,7 +423,7 @@ const PieSeriesDefaults: PlotOptionsOf<PieSeries> = {
      * 3.0.
      *
      * @sample {highcharts} highcharts/plotoptions/pie-ignorehiddenpoint/
-     *         True, the hiddden point is ignored
+     *         True, the hidden point is ignored
      *
      * @since   2.3.0
      * @product highcharts highmaps
@@ -492,7 +492,7 @@ const PieSeriesDefaults: PlotOptionsOf<PieSeries> = {
     /**
      * The diameter of the pie relative to the plot area. Can be a
      * percentage or pixel value. Pixel values are given as integers. The
-     * default behaviour (as of 3.0) is to scale to the plot area and give
+     * default behavior (as of 3.0) is to scale to the plot area and give
      * room for data labels within the plot area.
      * [slicedOffset](#plotOptions.pie.slicedOffset) is also included in the
      * default size calculation. As a consequence, the size of the pie may
@@ -572,7 +572,7 @@ const PieSeriesDefaults: PlotOptionsOf<PieSeries> = {
      * The color of the border surrounding each slice. When `null`, the
      * border takes the same color as the slice fill. This can be used
      * together with a `borderWidth` to fill drawing gaps created by
-     * antialiazing artefacts in borderless pies.
+     * antialiasing artifacts in border-less pies.
      *
      * In styled mode, the border stroke is given in the `.highcharts-point`
      * class.

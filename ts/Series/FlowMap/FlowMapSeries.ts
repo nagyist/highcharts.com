@@ -966,7 +966,7 @@ export default FlowMapSeries;
  * and `lat` properties.
  *
  * @sample {highmaps} maps/series-flowmap/from-to-lon-lat
- *         Flowmap point using lonlat coordinates
+ *         Flowmap point using lon-lat coordinates
  * @sample {highmaps} maps/series-flowmap/flight-routes
  *         Highmaps basic flight routes demo
  *
@@ -980,7 +980,7 @@ export default FlowMapSeries;
  * and `lat` properties.
  *
  * @sample {highmaps} maps/series-flowmap/from-to-lon-lat
- *         Flowmap point using lonlat coordinates
+ *         Flowmap point using lon-lat coordinates
  * @sample {highmaps} maps/series-flowmap/flight-routes
  *         Highmaps basic flight routes demo
  *

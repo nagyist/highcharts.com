@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -136,7 +136,7 @@ class PiePoint extends Point {
                 (shapeArgs as any).y,
                 (shapeArgs as any).r + size,
                 (shapeArgs as any).r + size, {
-                // Substract 1px to ensure the background is not bleeding
+                // Subtract 1px to ensure the background is not bleeding
                 // through between the halo and the slice (#7495).
                     innerR: (shapeArgs as any).r - 1,
                     start: (shapeArgs as any).start,

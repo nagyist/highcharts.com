@@ -1,7 +1,7 @@
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -513,7 +513,7 @@ class SVGRenderer implements SVGRendererBase {
                 return replaceNested(
                     win.location.href.split('#')[0], // Remove hash
                     [/<[^>]*>/g, ''], // Wing cut HTML
-                    [/([\('\)])/g, '\\$1'], // Escape parantheses and quotes
+                    [/([\('\)])/g, '\\$1'], // Escape parentheses and quotes
                     [/ /g, '%20'] // Replace spaces (needed for Safari only)
                 );
             }
@@ -953,7 +953,7 @@ class SVGRenderer implements SVGRendererBase {
     }
 
     /**
-     * Make a straight line crisper by not spilling out to neighbour pixels.
+     * Make a straight line crisper by not spilling out to neighbor pixels.
      *
      * @function Highcharts.SVGRenderer#crispLine
      *
@@ -1538,7 +1538,7 @@ class SVGRenderer implements SVGRendererBase {
                 obj.attr('fill', 'none');
             }
 
-            // Expando properties for use in animate and attr
+            // Expand properties for use in animate and attr
             extend(obj, {
                 symbolName: (sym || void 0),
                 x: x,

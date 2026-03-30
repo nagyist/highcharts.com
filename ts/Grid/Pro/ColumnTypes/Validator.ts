@@ -464,7 +464,7 @@ export type ValidationErrorFunction = (
  * and error message displayed in notification.
  */
 export interface RuleDefinition {
-    validate: RulesRegistryType|ValidateFunction;
+    validate: RuleKey|ValidateFunction;
     notification: string|ValidationErrorFunction;
 }
 

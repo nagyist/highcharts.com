@@ -210,6 +210,9 @@ export interface Options {
      * Defines the structure of levels in header. Used for grouping columns
      * headers.
      *
+     * Can be an array of strings (column IDs) or an array of objects of type
+     * {@link https://api.highcharts.com/grid/typedoc/interfaces/Grid_Core_Options.GroupedHeaderOptions.html | GroupedHeaderOptions}.
+     *
      * Try it: {@link https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/grid-lite/basic/grouped-headers | Grouped headers}
      */
     header?: Array<GroupedHeaderOptions | string>;

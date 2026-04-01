@@ -418,7 +418,7 @@ namespace ExportData {
         options: SeriesOptions;
         pointArrayMap?: Array<string>;
         index: number;
-        xAxis: Axis
+        xAxis: Axis;
     }
 
     /* *

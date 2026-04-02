@@ -271,9 +271,12 @@ const AreaRangeSeriesDefaults: AreaRangeSeriesOptions = {
 
 /**
  * Options for the lower markers of the arearange-like series. When `lowMarker`
- * is not defined, options inherit form the marker.
+ * is not defined, options inherit from the marker.
  *
  * @see [marker](#series.arearange.marker)
+ *
+ * @sample {highcharts} highcharts/series-arearange/lowmarker/
+ *         Area range chart with `lowMarker` option
  *
  * @declare   Highcharts.PointMarkerOptionsObject
  * @extends   plotOptions.series.marker
@@ -282,10 +285,6 @@ const AreaRangeSeriesDefaults: AreaRangeSeriesOptions = {
  */
 
 /**
- *
- * @sample {highcharts} highcharts/series-arearange/lowmarker/
- *         Area range chart with `lowMarker` option
- *
  * @declare   Highcharts.PointMarkerOptionsObject
  * @extends   plotOptions.series.marker.symbol
  * @product   highcharts highstock

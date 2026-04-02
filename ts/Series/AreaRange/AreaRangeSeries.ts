@@ -18,8 +18,8 @@
  * */
 
 import type Axis from '../../Core/Axis/Axis';
-import type AreaRangeDataLabelOptions from './AreaRangeDataLabelOptions';
 import type AreaRangeSeriesOptions from './AreaRangeSeriesOptions';
+import type { AreaRangeDataLabelOptions } from './AreaRangeSeriesOptions';
 import type AreaPoint from '../Area/AreaPoint';
 import type { DeepPartial } from '../../Shared/Types';
 import type { PointMarkerOptions } from '../../Core/Series/PointOptions';

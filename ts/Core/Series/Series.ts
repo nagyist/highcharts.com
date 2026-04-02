@@ -5486,7 +5486,7 @@ export default Series;
  * have to cast the series options to specific series types, to get all
  * possible options for a series.
  *
- * ```js
+ * ```ts
  * // TypeScript example
  * Highcharts.chart('container', {
  *     series: [{

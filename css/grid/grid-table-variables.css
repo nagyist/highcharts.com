@@ -306,7 +306,8 @@
     /* End column hover & sync */
 
     /* Start row hover & sync */
-    .hcg-table tr:hover td {
+    .hcg-table tbody tr:hover td,
+    .hcg-table tbody tr:hover th {
         --ig-row-hover-color:
             color-mix(
                 in srgb,
@@ -320,7 +321,8 @@
         color: var(--ig-cell-hover-text-color);
     }
 
-    .hcg-table tr.hcg-synced-row td {
+    .hcg-table tbody tr.hcg-synced-row td,
+    .hcg-table tbody tr.hcg-synced-row th {
         --ig-row-hover-color:
             color-mix(
                 in srgb,
@@ -346,9 +348,12 @@
     /* End row hover & sync */
 
     /* Start cell hover & sync */
-    .hcg-table td:hover,
-    .hcg-table tr:hover td:hover,
-    .hcg-table td.hcg-hovered-column:hover {
+    .hcg-table tbody td:hover,
+    .hcg-table tbody th:hover,
+    .hcg-table tbody tr:hover td:hover,
+    .hcg-table tbody tr:hover th:hover,
+    .hcg-table tbody td.hcg-hovered-column:hover,
+    .hcg-table tbody th.hcg-hovered-column:hover {
         --ig-cell-hover-layer:
             color-mix(
                 in srgb,
@@ -361,7 +366,8 @@
         color: var(--ig-cell-hover-text-color);
     }
 
-    .hcg-table tr.hcg-synced-row td.hcg-synced-column {
+    .hcg-table tbody tr.hcg-synced-row td.hcg-synced-column,
+    .hcg-table tbody tr.hcg-synced-row th.hcg-synced-column {
         --ig-cell-hover-layer:
             color-mix(
                 in srgb,

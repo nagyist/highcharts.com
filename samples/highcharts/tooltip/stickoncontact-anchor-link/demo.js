@@ -8,9 +8,7 @@ Highcharts.chart('container', {
     },
 
     tooltip: {
-        followTouchMove: false,
-        stickOnContact: true,
-        useHTML: true
+        stickOnContact: true
     },
 
     xAxis: {
@@ -20,7 +18,6 @@ Highcharts.chart('container', {
     series: [{
         tooltip: {
             headerFormat: '',
-            hideDelay: 5000,
             pointFormat:
                 '{point.y} <a href="{point.custom.url}" ' +
                 'target="_blank" rel="noopener">Link</a>'

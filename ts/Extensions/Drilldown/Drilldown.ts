@@ -668,8 +668,8 @@ class ChartAdditions {
                 if (level.levelNumber === levelToRemove) {
                     level.levelSeries.forEach((series): void => {
                         const levelNumber =
-                            series.options._levelNumber ??
-                            series.userOptions._levelNumber;
+                            series.options?._levelNumber ??
+                            series.userOptions?._levelNumber;
                         // Not removed, not added as part of a multi-series
                         // drilldown
                         if (!chart.mapView) {

@@ -197,23 +197,31 @@ const getCurrentTotal = arrOfArr => {
             name: 'Invested',
             id: 'invested',
             className: 'dotted-line'
-        }]
+        }],
 
-        // responsive: {
-        //     rules: [{
-        //         condition: {
-        //             maxWidth: 731
-        //         },
-        //         chartOptions: {
-        //             chart: {
-        //                 height: 300
-        //             },
-        //             rangeSelector: {
-        //                 enabled: true
-        //             }
-        //         }
-        //     }]
-        // }
+        responsive: {
+            rules: [{
+                condition: {
+                    maxWidth: 400
+                },
+                chartOptions: {
+                    rangeSelector: {
+                        dropdown: 'always'
+                    }
+                }
+            },
+            {
+                condition: {
+                    minWidth: 401
+                },
+                chartOptions: {
+                    rangeSelector: {
+                        dropdown: 'never'
+                    }
+                }
+            }
+            ]
+        }
     };
 
     const riskScoreKPIOptions = {
@@ -245,6 +253,7 @@ const getCurrentTotal = arrOfArr => {
         plotOptions: {
             series: {
                 borderRadius: 20,
+                clip: false,
                 innerRadius: '85%',
                 dataLabels: {
                     format: '<div style="text-align:center; ' +
@@ -319,6 +328,7 @@ const getCurrentTotal = arrOfArr => {
         },
         series: [{
             borderRadius: 30,
+            clip: false,
             dataLabels: {
                 format: '<div style="text-align:center; ' +
                     'margin-top: -40px">' +

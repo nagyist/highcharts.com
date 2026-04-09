@@ -216,4 +216,62 @@ test.describe('series/marker-clusters', {
             '18.00'
         );
     });
+
+    test('Grid algorithm should not hang on datetime data', async ({ page }) => {
+        // Related to #19740
+        // If the grid clustering algorithm regresses into a infinite loop,
+        // this test should fail quickly by hitting the timeout below.
+        test.setTimeout(2000);
+
+        const options: Highcharts.Options = {
+            chart: {
+                width: 800
+            },
+            title: {
+                text: ''
+            },
+            xAxis: {
+                type: 'datetime'
+            },
+            series: [{
+                type: 'scatter',
+                data: [
+                    { x: 1694561823000, y: 1 },
+                    { x: 1694561823000 + 1, y: 1 }
+                ],
+                cluster: {
+                    enabled: true,
+                    animation: false
+                }
+            }]
+        };
+
+        const chart = await createChart(page, options, {
+            modules: ['modules/marker-clusters.js']
+        });
+
+        // Ensure the page event loop is responsive right after chart creation.
+        // A blocked main thread would prevent the timer from firing.
+        await page.evaluate(() => new Promise<void>(resolve => {
+            window.setTimeout(() => resolve(), 0);
+        }));
+
+        expect(
+            await chart.evaluate(c => {
+                const series = c.series[0];
+                const markerClusterInfo = series.markerClusterInfo;
+                const clusters =
+                    markerClusterInfo && markerClusterInfo.clusters;
+
+                return {
+                    hasClustersArray: Array.isArray(clusters),
+                    clustersLength: clusters ? clusters.length : null
+                };
+            }),
+            'Clustering should complete and keep browser responsive.'
+        ).toEqual({
+            hasClustersArray: true,
+            clustersLength: 0
+        });
+    });
 });

@@ -79,8 +79,6 @@ async function compare (base: BenchResults, actual: BenchResults){
         const baseEntry = base.find(b => b.sampleSize === entry.sampleSize);
 
         if (baseEntry) {
-            // Compare
-            const diff = baseEntry.avg - entry.avg;
             const baseOutliers = getOutliers(baseEntry.results, baseEntry.Q1, baseEntry.Q3);
             const actualOutliers = getOutliers(entry.results, entry.Q1, entry.Q3);
 
@@ -177,9 +175,10 @@ async function compare (base: BenchResults, actual: BenchResults){
 
     // test, averages, diff
     const markdownTableRows = actual.map((entry, i) =>{
-        const diff = base[i].avg - entry.avg;
+        const baseEntry = base.find(b => b.sampleSize === entry.sampleSize) ?? base[i];
+        const diff = entry.avg - baseEntry.avg;
 
-        return `| ${entry.sampleSize} | ${fmtResult(base[i].avg)} | ${fmtResult(entry.avg)} | ${fmtResult(diff)} | ${fmtResult((diff) / entry.avg) * 100}%`;
+        return `| ${entry.sampleSize} | ${fmtResult(entry.avg)} | ${fmtResult(baseEntry.avg)} | ${fmtResult(diff)} | ${fmtResult((diff) / baseEntry.avg) * 100}%`;
     });
 
     const markdownTableHeader = `| Sample size | This PR avg (ms) | master avg (ms) | Diff | Percent diff |
@@ -215,28 +214,28 @@ ${markdownTableRows.join('\n')}
 
 async function compareFile(actualFilePath: string, baseFilePath: string, comparisonsMade: number) {
 
-    const baseFileContent = await readFile(
+    const actualFileContent = await readFile(
         actualFilePath,
         'utf-8'
     ).catch((e)=> console.log(e, 'couldnt read actual file'));
 
-    if (!baseFileContent) {
+    if (!actualFileContent) {
         return comparisonsMade;
     }
         // Do a compare
-        const actual = await readFile(
+        const baseFileContent = await readFile(
         baseFilePath,
             'utf-8'
         ).catch(() => {throw new Error('File vanished');});
 
+        const actual = JSON.parse(actualFileContent);
         const base = JSON.parse(baseFileContent);
-        const act = JSON.parse(actual);
 
         // They should be arrays of objects
-    if (!(Array.isArray(base) && Array.isArray(act))) {
+    if (!(Array.isArray(base) && Array.isArray(actual))) {
         return comparisonsMade;
     }
-    await compare(base, act);
+    await compare(base, actual);
     return comparisonsMade+1;
 
 }

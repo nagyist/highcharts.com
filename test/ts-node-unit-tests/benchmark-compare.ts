@@ -72,7 +72,7 @@ function getOutliers (array: number[], Q1:number, Q3: number){
 }
 
 function getBenchmarkTitle (testField: string): string {
-    return basename(testField, '.bench.ts');
+    return basename(testField, '.bench.ts').replace(/-/g, ' ');
 }
 
 function getMedian (values: number[]): number | undefined {

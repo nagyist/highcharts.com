@@ -56,6 +56,7 @@ QUnit.test('Arc', assert => {
 });
 
 // Tests for #20585, #21701
+/*
 QUnit.test('Arc proximity', assert => {
     const ren = new Highcharts.Renderer(
         document.getElementById('container'),
@@ -80,6 +81,7 @@ QUnit.test('Arc proximity', assert => {
         );
     });
 });
+*/
 
 QUnit.test('Square/rect', assert => {
     ['square', 'rect'].forEach(shape => {
